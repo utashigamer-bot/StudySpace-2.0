@@ -1,433 +1,2274 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#536dfe">
+<title>StudySpace V2.4</title>
 
-  <title>Liquid Glass Navigation</title>
+<style>
+:root{
+  --bg:#f4f6fb;
+  --surface:#fff;
+  --surface2:#eef1f7;
+  --text:#172033;
+  --muted:#748096;
+  --border:#dfe4ee;
+  --primary:#536dfe;
+  --primary-dark:#4055d8;
+  --success:#18a878;
+  --danger:#e05252;
+  --warning:#ed9c28;
+  --shadow:0 10px 28px rgba(30,45,80,.08);
+  --radius:16px;
+  --sidebar:250px;
+}
 
-  <!-- Version : v1.0.0 -->
+[data-theme="dark"]{
+  --bg:#111522;
+  --surface:#191e2d;
+  --surface2:#232a3c;
+  --text:#eef2ff;
+  --muted:#929bb1;
+  --border:#30384d;
+  --primary:#8191ff;
+  --primary-dark:#6878ed;
+  --success:#38d39f;
+  --danger:#ff7171;
+  --warning:#ffb84d;
+  --shadow:0 10px 28px rgba(0,0,0,.25);
+}
 
-  <style>
-    :root {
-      --background: #090909;
-      --glass-background: rgba(35, 35, 38, 0.72);
-      --glass-border: rgba(255, 255, 255, 0.14);
-      --active-background: rgba(255, 255, 255, 0.17);
-      --text-color: #ffffff;
-      --muted-color: rgba(255, 255, 255, 0.55);
-      --accent-color: #ff9f0a;
-      --nav-height: 74px;
-    }
+*{box-sizing:border-box}
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+html,body{
+  margin:0;
+  min-height:100%;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  touch-action:manipulation;
+  overscroll-behavior-x:none;
+  transition:background .25s ease,color .25s ease;
+}
 
-    body {
-      min-height: 100vh;
-      overflow-x: hidden;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
-        "SF Pro Text", Inter, Arial, sans-serif;
-      color: var(--text-color);
-      background:
-        radial-gradient(circle at 15% 15%, rgba(255, 159, 10, 0.15), transparent 30%),
-        radial-gradient(circle at 85% 25%, rgba(0, 122, 255, 0.15), transparent 30%),
-        radial-gradient(circle at 50% 100%, rgba(175, 82, 222, 0.18), transparent 35%),
-        var(--background);
-    }
+button,input,textarea,select{font:inherit}
 
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      z-index: -1;
-      pointer-events: none;
-      background:
-        linear-gradient(
-          120deg,
-          transparent 0%,
-          rgba(255, 255, 255, 0.025) 45%,
-          transparent 55%
-        );
-    }
+button{
+  cursor:pointer;
+  border:0;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;
+}
 
-    .page {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 32px 20px 140px;
-    }
+button:active{transform:scale(.97)}
 
-    .content {
-      width: min(760px, 100%);
-      text-align: center;
-      animation: fadeIn 0.8s ease both;
-    }
+input,textarea,select{
+  color:var(--text);
+  background:var(--surface2);
+}
 
-    .version {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 22px;
-      padding: 8px 14px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 999px;
-      color: rgba(255, 255, 255, 0.68);
-      background: rgba(255, 255, 255, 0.06);
-      font-size: 13px;
-      letter-spacing: 0.04em;
-      backdrop-filter: blur(15px);
-      -webkit-backdrop-filter: blur(15px);
-    }
+.sidebar{
+  position:fixed;
+  inset:0 auto 0 0;
+  z-index:20;
+  width:var(--sidebar);
+  display:flex;
+  flex-direction:column;
+  background:var(--surface);
+  border-right:1px solid var(--border);
+}
 
-    .version::before {
-      content: "";
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #30d158;
-      box-shadow: 0 0 12px rgba(48, 209, 88, 0.85);
-    }
+.logo{
+  height:76px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:0 22px;
+  border-bottom:1px solid var(--border);
+}
 
-    h1 {
-      margin-bottom: 18px;
-      font-size: clamp(42px, 8vw, 86px);
-      line-height: 0.95;
-      letter-spacing: -0.07em;
-      font-weight: 700;
-      background: linear-gradient(
-        120deg,
-        #ffffff 15%,
-        #c9c9cf 50%,
-        #77777f 100%
+.logo-icon{
+  width:36px;
+  height:36px;
+  display:grid;
+  place-items:center;
+  border-radius:11px;
+  color:#fff;
+  font-size:20px;
+  font-weight:800;
+  background:linear-gradient(135deg,#536dfe,#895cf6);
+}
+
+.logo-text{font-weight:800;font-size:18px}
+.logo-sub{color:var(--muted);font-size:10px}
+
+.nav{flex:1;padding:18px 12px}
+
+.nav-title{
+  padding:12px;
+  color:var(--muted);
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+}
+
+.nav-button{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:11px 13px;
+  margin-bottom:4px;
+  border-radius:10px;
+  color:var(--muted);
+  background:transparent;
+  text-align:left;
+  transition:.18s ease;
+}
+
+.nav-button:hover,
+.nav-button.active{
+  color:var(--primary);
+  background:color-mix(in srgb,var(--primary) 12%,transparent);
+}
+
+.nav-button:hover{transform:translateX(2px)}
+.nav-icon{width:22px;text-align:center;font-size:17px}
+
+.sidebar-bottom{
+  padding:14px;
+  border-top:1px solid var(--border);
+}
+
+.main{
+  min-height:100vh;
+  margin-left:var(--sidebar);
+}
+
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:10;
+  height:76px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  padding:0 32px;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+}
+
+.search{
+  position:relative;
+  width:min(460px,50vw);
+}
+
+.search span{
+  position:absolute;
+  top:9px;
+  left:15px;
+  color:var(--muted);
+  font-size:20px;
+}
+
+.search input{
+  width:100%;
+  padding:12px 15px 12px 42px;
+  border:1px solid var(--border);
+  border-radius:11px;
+  outline:0;
+}
+
+.top-actions,.actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.icon-button{
+  width:40px;
+  height:40px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  color:var(--text);
+  background:var(--surface);
+}
+
+.icon-button:hover{
+  color:var(--primary);
+  border-color:var(--primary);
+}
+
+.content{
+  max-width:1500px;
+  margin:auto;
+  padding:32px;
+}
+
+.page{display:none}
+
+.page.active{
+  display:block;
+  animation:pageAppear .2s ease-out both;
+}
+
+@keyframes pageAppear{
+  from{opacity:0;transform:translateY(4px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+.page-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:20px;
+  margin-bottom:28px;
+}
+
+.page-title{
+  margin:0;
+  font-size:30px;
+  letter-spacing:-.7px;
+}
+
+.page-subtitle{
+  margin-top:7px;
+  color:var(--muted);
+  font-size:14px;
+}
+
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+}
+
+.card-padding{padding:22px}
+
+.button{
+  padding:10px 15px;
+  border-radius:10px;
+  font-weight:700;
+  transition:.16s ease;
+}
+
+.button:hover{transform:translateY(-1px)}
+.button-primary{color:#fff;background:var(--primary)}
+.button-primary:hover{background:var(--primary-dark)}
+
+.button-secondary{
+  color:var(--text);
+  border:1px solid var(--border);
+  background:var(--surface);
+}
+
+.button-danger{
+  color:var(--danger);
+  border:1px solid color-mix(in srgb,var(--danger) 35%,var(--border));
+  background:transparent;
+}
+
+.input,.textarea,.select{
+  width:100%;
+  padding:11px 13px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  outline:0;
+}
+
+.input:focus,.textarea:focus,.select:focus,.search input:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 13%,transparent);
+}
+
+.textarea{
+  min-height:260px;
+  line-height:1.7;
+  resize:vertical;
+}
+
+.label{
+  display:block;
+  margin-bottom:7px;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:1px;
+  text-transform:uppercase;
+}
+
+.empty{
+  padding:28px 15px;
+  color:var(--muted);
+  text-align:center;
+}
+
+.section-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:15px;
+  font-size:17px;
+  font-weight:800;
+}
+
+.welcome{
+  padding:26px;
+  margin-bottom:22px;
+  color:#fff;
+  border-radius:var(--radius);
+  background:linear-gradient(135deg,#536dfe,#815cf6);
+}
+
+.welcome h2{margin:0 0 7px;font-size:25px}
+.welcome p{margin:0;opacity:.85}
+
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:15px;
+  margin-bottom:22px;
+}
+
+.stat{padding:20px}
+.stat-label{color:var(--muted);font-size:12px;font-weight:700}
+.stat-value{margin-top:8px;font-size:32px;font-weight:800}
+.stat-note{margin-top:4px;color:var(--muted);font-size:12px}
+
+.dashboard-grid{
+  display:grid;
+  grid-template-columns:1.2fr .8fr;
+  gap:20px;
+}
+
+.courses-layout{
+  display:grid;
+  grid-template-columns:250px 1fr;
+  gap:20px;
+}
+
+.subject-list{padding:12px}
+
+.subject{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px;
+  margin-bottom:4px;
+  border-radius:10px;
+  color:var(--muted);
+  cursor:pointer;
+}
+
+.subject:hover,.subject.active{
+  color:var(--primary);
+  background:color-mix(in srgb,var(--primary) 12%,transparent);
+}
+
+.subject-color{
+  width:11px;
+  height:11px;
+  flex-shrink:0;
+  border-radius:50%;
+}
+
+.course-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+  margin-bottom:18px;
+}
+
+.course-head h2{margin:0}
+.course-head p{margin:5px 0 0;color:var(--muted);font-size:13px}
+.notes-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.notes-meta{margin-top:8px;color:var(--muted);font-size:12px}
+
+.agenda-layout{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(320px,370px);
+  gap:22px;
+}
+
+.calendar-toolbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:18px;
+}
+
+.calendar-toolbar h2{
+  margin:0;
+  font-size:17px;
+  text-align:center;
+}
+
+.week-grid{
+  display:grid;
+  grid-template-columns:repeat(7,minmax(82px,1fr));
+  gap:8px;
+}
+
+.day-column{
+  min-height:430px;
+  overflow:hidden;
+  padding:10px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:var(--surface2);
+}
+
+.day-name{
+  color:var(--muted);
+  font-size:11px;
+  font-weight:800;
+  text-align:center;
+  text-transform:uppercase;
+}
+
+.day-date{
+  margin:5px 0 13px;
+  font-size:20px;
+  font-weight:800;
+  text-align:center;
+}
+
+.event{
+  padding:10px;
+  margin-bottom:8px;
+  color:#fff;
+  border-radius:9px;
+  font-size:12px;
+}
+
+.event strong,.event small{display:block}
+.event strong{font-size:13px}
+.event small{margin-top:3px;opacity:.82}
+
+.event-delete{
+  float:right;
+  border:0;
+  color:#fff;
+  background:transparent;
+  font-size:17px;
+}
+
+.mobile-agenda{display:none}
+
+.task-form{
+  display:grid;
+  grid-template-columns:1fr 180px 130px auto;
+  gap:8px;
+  margin-bottom:20px;
+}
+
+.task-list{display:flex;flex-direction:column;gap:9px}
+
+.task{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:var(--surface);
+}
+
+.task.done{opacity:.55}
+.task.done .task-name{text-decoration:line-through}
+
+.task-check{
+  width:22px;
+  height:22px;
+  display:grid;
+  place-items:center;
+  flex-shrink:0;
+  border:2px solid var(--border);
+  border-radius:7px;
+  cursor:pointer;
+}
+
+.task.done .task-check{
+  color:#fff;
+  border-color:var(--success);
+  background:var(--success);
+}
+
+.task-info{flex:1}
+.task-name{font-weight:700}
+.task-meta{margin-top:4px;color:var(--muted);font-size:12px}
+
+.quick-notes{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:15px;
+}
+
+.quick-note{
+  min-height:170px;
+  padding:18px;
+  border:1px solid #e8d866;
+  border-radius:14px;
+  color:#473d13;
+  background:#fff7bd;
+}
+
+.quick-note textarea{
+  width:100%;
+  height:105px;
+  border:0;
+  outline:0;
+  color:inherit;
+  background:transparent;
+  resize:none;
+}
+
+.settings-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+}
+
+.version-card{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:13px 15px;
+  margin-top:18px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  color:var(--muted);
+  background:var(--surface2);
+  font-size:13px;
+}
+
+.version-card strong{color:var(--primary);font-size:15px}
+
+.pomodoro{
+  max-width:560px;
+  margin:auto;
+  text-align:center;
+}
+
+.timer-ring{
+  width:280px;
+  height:280px;
+  display:grid;
+  place-items:center;
+  margin:25px auto;
+  border:12px solid var(--surface2);
+  border-radius:50%;
+}
+
+.timer-inner{
+  width:228px;
+  height:228px;
+  display:grid;
+  place-items:center;
+  border:8px solid var(--primary);
+  border-radius:50%;
+}
+
+.timer{
+  font-size:54px;
+  font-weight:900;
+  letter-spacing:-3px;
+}
+
+/* =========================================================
+   LIQUID GLASS — STUDYSPACE V2.3
+   ========================================================= */
+
+.mobile-menu{display:none}
+
+@media(max-width:1100px){
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .dashboard-grid{grid-template-columns:1fr}
+}
+
+@media(max-width:760px){
+
+  :root{--sidebar:0px}
+
+  .sidebar{display:none}
+
+  .main{
+    margin-left:0;
+    padding-bottom:calc(122px + env(safe-area-inset-bottom));
+  }
+
+  .topbar{
+    height:65px;
+    padding:0 15px;
+  }
+
+  .search{width:100%}
+  .content{padding:20px 15px}
+
+  .page-header{
+    flex-direction:column;
+    margin-bottom:22px;
+  }
+
+  .page-title{font-size:25px}
+  .stats-grid{grid-template-columns:1fr 1fr;gap:10px}
+  .courses-layout,.settings-grid{grid-template-columns:1fr}
+
+  .subject-list{
+    display:flex;
+    gap:5px;
+    overflow-x:auto;
+  }
+
+  .subject{
+    flex:0 0 auto;
+    white-space:nowrap;
+  }
+
+  .course-head{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .task-form{grid-template-columns:1fr}
+
+  .agenda-layout{display:block}
+  .agenda-layout>.card:first-child{margin-bottom:18px}
+  .agenda-pc{display:none}
+  .mobile-agenda{display:block}
+
+  .mobile-day{
+    padding:15px;
+    margin-bottom:14px;
+    border:1px solid var(--border);
+    border-radius:14px;
+    background:var(--surface2);
+  }
+
+  .mobile-day.today{
+    border-color:var(--primary);
+    box-shadow:0 0 0 2px color-mix(in srgb,var(--primary) 12%,transparent);
+  }
+
+  .mobile-day-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:10px;
+  }
+
+  .mobile-day-name{
+    color:var(--muted);
+    font-size:12px;
+    font-weight:800;
+    text-transform:uppercase;
+  }
+
+  .mobile-day-date{font-size:16px;font-weight:800}
+
+  .mobile-event{
+    display:flex;
+    align-items:stretch;
+    gap:11px;
+    padding:10px 0;
+    border-top:1px solid var(--border);
+  }
+
+  .mobile-event-time{
+    width:52px;
+    flex-shrink:0;
+    color:var(--muted);
+    font-size:12px;
+    font-weight:700;
+  }
+
+  .mobile-event-color{
+    width:4px;
+    flex-shrink:0;
+    border-radius:8px;
+  }
+
+  .mobile-event-content{flex:1}
+  .mobile-event-title{font-weight:800}
+  .mobile-event-type{
+    margin-top:3px;
+    color:var(--muted);
+    font-size:12px;
+  }
+
+  .mobile-event-delete{
+    align-self:center;
+    color:var(--danger);
+    background:transparent;
+    font-size:20px;
+  }
+
+  .timer-ring{width:245px;height:245px}
+  .timer-inner{width:198px;height:198px}
+  .timer{font-size:45px}
+
+  /*
+    Barre flottante :
+    - verre translucide
+    - saturation
+    - reflets spéculaires
+    - halo dynamique
+    - capsule active
+    - support du thème sombre
+  */
+
+  .mobile-menu{
+    position:fixed;
+    right:12px;
+    bottom:calc(12px + env(safe-area-inset-bottom));
+    left:12px;
+    z-index:50;
+
+    display:flex;
+    align-items:center;
+    gap:3px;
+
+    height:74px;
+    padding:7px;
+
+    overflow:visible;
+
+    border:1px solid rgba(255,255,255,.46);
+    border-radius:27px;
+
+    background:
+      radial-gradient(
+        circle at var(--glass-x,50%) var(--glass-y,0%),
+        rgba(255,255,255,.34),
+        transparent 32%
+      ),
+      linear-gradient(
+        125deg,
+        rgba(255,255,255,.53),
+        rgba(255,255,255,.23) 42%,
+        rgba(255,255,255,.09)
       );
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
 
-    .description {
-      max-width: 580px;
-      margin: 0 auto;
-      color: rgba(255, 255, 255, 0.62);
-      font-size: 17px;
-      line-height: 1.6;
-    }
+    box-shadow:
+      0 22px 48px rgba(31,42,78,.27),
+      0 5px 15px rgba(31,42,78,.12),
+      inset 0 1px 0 rgba(255,255,255,.86),
+      inset 0 -1px 0 rgba(0,0,0,.10);
 
-    .glass-nav {
-      position: fixed;
-      z-index: 100;
-      left: 50%;
-      bottom: 26px;
-      transform: translateX(-50%);
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      width: max-content;
-      max-width: calc(100% - 30px);
-      padding: 8px;
-      border: 1px solid var(--glass-border);
-      border-radius: 28px;
-      background:
-        linear-gradient(
-          145deg,
-          rgba(255, 255, 255, 0.13),
-          rgba(255, 255, 255, 0.025)
-        ),
-        var(--glass-background);
-      box-shadow:
-        0 18px 45px rgba(0, 0, 0, 0.45),
-        inset 0 1px 0 rgba(255, 255, 255, 0.13),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.35);
-      backdrop-filter: blur(28px) saturate(160%);
-      -webkit-backdrop-filter: blur(28px) saturate(160%);
-      animation: navAppear 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
-    }
+    backdrop-filter:blur(34px) saturate(200%) contrast(110%);
+    -webkit-backdrop-filter:blur(34px) saturate(200%) contrast(110%);
 
-    .glass-nav::before {
-      content: "";
-      position: absolute;
-      top: 1px;
-      left: 10%;
-      right: 10%;
-      height: 1px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.25);
-      filter: blur(1px);
-      pointer-events: none;
-    }
+    isolation:isolate;
+    transition:background .25s ease,box-shadow .25s ease;
+  }
 
-    .nav-item {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      min-width: 58px;
-      height: 56px;
-      padding: 0 16px;
-      border: 0;
-      border-radius: 20px;
-      color: var(--muted-color);
-      background: transparent;
-      cursor: pointer;
-      font: inherit;
-      transition:
-        color 0.3s ease,
-        background 0.3s ease,
-        transform 0.3s ease;
-      -webkit-tap-highlight-color: transparent;
-    }
+  .mobile-menu::before{
+    position:absolute;
+    top:1px;
+    right:11%;
+    left:11%;
+    height:2px;
+    content:"";
+    border-radius:50%;
+    background:linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,.98) 35%,
+      rgba(255,255,255,.55) 65%,
+      transparent
+    );
+    filter:blur(.8px);
+    opacity:.95;
+    pointer-events:none;
+  }
 
-    .nav-item:hover {
-      color: var(--text-color);
-      background: rgba(255, 255, 255, 0.09);
-      transform: translateY(-2px);
-    }
+  .mobile-menu::after{
+    position:absolute;
+    top:-23px;
+    left:16%;
+    width:68%;
+    height:43px;
+    content:"";
+    border-radius:50%;
+    background:radial-gradient(
+      ellipse,
+      rgba(255,255,255,.32),
+      transparent 70%
+    );
+    filter:blur(12px);
+    opacity:.8;
+    pointer-events:none;
+  }
 
-    .nav-item.active {
-      color: var(--text-color);
-      background:
-        linear-gradient(
-          145deg,
-          rgba(255, 255, 255, 0.22),
-          rgba(255, 255, 255, 0.08)
-        );
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.17),
-        0 4px 14px rgba(0, 0, 0, 0.18);
-    }
+  [data-theme="dark"] .mobile-menu{
+    border-color:rgba(255,255,255,.20);
+    background:
+      radial-gradient(
+        circle at var(--glass-x,50%) var(--glass-y,0%),
+        rgba(150,165,255,.20),
+        transparent 34%
+      ),
+      linear-gradient(
+        125deg,
+        rgba(76,88,132,.78),
+        rgba(35,43,70,.84) 45%,
+        rgba(17,22,39,.90)
+      );
+    box-shadow:
+      0 22px 48px rgba(0,0,0,.46),
+      0 5px 15px rgba(0,0,0,.25),
+      inset 0 1px 0 rgba(255,255,255,.28),
+      inset 0 -1px 0 rgba(0,0,0,.30);
+    backdrop-filter:blur(36px) saturate(185%) contrast(114%);
+    -webkit-backdrop-filter:blur(36px) saturate(185%) contrast(114%);
+  }
 
-    .nav-item.active .icon {
-      color: var(--accent-color);
-      filter: drop-shadow(0 0 7px rgba(255, 159, 10, 0.55));
-    }
+  [data-theme="dark"] .mobile-menu::after{
+    background:radial-gradient(
+      ellipse,
+      rgba(255,255,255,.17),
+      transparent 70%
+    );
+  }
 
-    .icon {
-      width: 22px;
-      height: 22px;
-      flex: 0 0 22px;
-      transition:
-        color 0.3s ease,
-        transform 0.3s ease;
-    }
+  .mobile-menu button{
+    position:relative;
+    z-index:2;
+    flex:1;
+    min-width:0;
+    height:100%;
+    padding:6px 2px 5px;
+    border-radius:20px;
+    color:var(--muted);
+    background:transparent;
+    font-size:10px;
+    font-weight:700;
+    transition:
+      color .28s ease,
+      background .28s ease,
+      transform .28s cubic-bezier(.22,1,.36,1),
+      box-shadow .28s ease;
+  }
 
-    .nav-item:active {
-      transform: scale(0.92);
-    }
+  .mobile-menu button span{
+    display:block;
+    margin-bottom:2px;
+    font-size:21px;
+    line-height:25px;
+    transition:transform .28s ease,filter .28s ease;
+  }
 
-    .nav-label {
-      max-width: 0;
-      overflow: hidden;
-      white-space: nowrap;
-      opacity: 0;
-      font-size: 14px;
-      font-weight: 600;
-      transition:
-        max-width 0.35s ease,
-        opacity 0.25s ease;
-    }
+  .mobile-menu button::before{
+    position:absolute;
+    top:4px;
+    right:12%;
+    left:12%;
+    height:1px;
+    content:"";
+    border-radius:50%;
+    background:rgba(255,255,255,.62);
+    opacity:0;
+    transition:opacity .25s ease;
+  }
 
-    .nav-item.active .nav-label {
-      max-width: 90px;
-      opacity: 1;
-    }
+  .mobile-menu button::after{
+    position:absolute;
+    right:19%;
+    bottom:5px;
+    left:19%;
+    height:3px;
+    content:"";
+    border-radius:20px;
+    background:var(--primary);
+    box-shadow:0 0 10px color-mix(in srgb,var(--primary) 75%,transparent);
+    opacity:0;
+    transform:scaleX(.35);
+    transition:opacity .25s ease,transform .3s ease;
+  }
 
-    .page-section {
-      display: none;
-    }
+  .mobile-menu button.active{
+    color:var(--primary);
+    background:linear-gradient(
+      145deg,
+      rgba(255,255,255,.48),
+      rgba(255,255,255,.16)
+    );
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.76),
+      inset 0 -1px 0 rgba(0,0,0,.08),
+      0 4px 14px rgba(30,42,80,.15);
+  }
 
-    .page-section.active {
-      display: block;
-    }
+  [data-theme="dark"] .mobile-menu button.active{
+    background:linear-gradient(
+      145deg,
+      rgba(255,255,255,.22),
+      rgba(255,255,255,.07)
+    );
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.26),
+      inset 0 -1px 0 rgba(0,0,0,.22),
+      0 4px 14px rgba(0,0,0,.22);
+  }
 
-    @keyframes navAppear {
-      from {
-        opacity: 0;
-        transform: translateX(-50%) translateY(30px) scale(0.92);
-      }
+  .mobile-menu button.active::before{opacity:1}
+  .mobile-menu button.active::after{
+    opacity:1;
+    transform:scaleX(1);
+  }
 
-      to {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0) scale(1);
-      }
-    }
+  .mobile-menu button.active span{
+    transform:translateY(-1px) scale(1.1);
+    filter:drop-shadow(
+      0 0 8px color-mix(in srgb,var(--primary) 65%,transparent)
+    );
+  }
 
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(15px);
-      }
+  .mobile-menu button:hover{
+    color:var(--text);
+    background:rgba(255,255,255,.10);
+  }
 
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
+  .mobile-menu button:active{
+    transform:scale(.88);
+    background:rgba(255,255,255,.23);
+  }
+}
 
-    @media (max-width: 600px) {
-      .page {
-        padding-bottom: 125px;
-      }
-
-      .glass-nav {
-        bottom: 17px;
-        padding: 6px;
-        border-radius: 24px;
-      }
-
-      .nav-item {
-        min-width: 48px;
-        width: 48px;
-        height: 52px;
-        padding: 0;
-        border-radius: 18px;
-      }
-
-      .nav-item.active {
-        width: auto;
-        padding: 0 14px;
-      }
-
-      .nav-label {
-        font-size: 13px;
-      }
-
-      .description {
-        font-size: 15px;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
-        animation-duration: 0.01ms !important;
-        transition-duration: 0.01ms !important;
-      }
-    }
-  </style>
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:.01ms!important;
+    transition-duration:.01ms!important;
+    scroll-behavior:auto!important;
+  }
+}
+</style>
 </head>
 
 <body>
-  <main class="page">
-    <section class="content">
-      <div class="version">Version v1.0.0</div>
 
-      <div id="home" class="page-section active">
-        <h1>Liquid Glass</h1>
-        <p class="description">
-          Une navigation flottante inspirée de l’interface Apple,
-          avec transparence, flou et animations fluides.
-        </p>
-      </div>
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">✦</div>
+    <div>
+      <div class="logo-text">StudySpace</div>
+      <div class="logo-sub">Espace étudiant</div>
+    </div>
+  </div>
 
-      <div id="search" class="page-section">
-        <h1>Recherche</h1>
-        <p class="description">
-          Retrouvez rapidement vos contenus favoris.
-        </p>
-      </div>
+  <nav class="nav">
+    <div class="nav-title">Principal</div>
 
-      <div id="favorites" class="page-section">
-        <h1>Favoris</h1>
-        <p class="description">
-          Vos éléments enregistrés sont regroupés ici.
-        </p>
-      </div>
-
-      <div id="profile" class="page-section">
-        <h1>Profil</h1>
-        <p class="description">
-          Gérez votre compte et vos préférences.
-        </p>
-      </div>
-    </section>
-  </main>
-
-  <nav class="glass-nav" aria-label="Navigation principale">
-    <button class="nav-item active" data-target="home" aria-label="Accueil">
-      <svg class="icon" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="1.8"
-        stroke-linecap="round" stroke-linejoin="round">
-        <path d="M3 10.8 12 3l9 7.8"></path>
-        <path d="M5.5 9.5V21h13V9.5"></path>
-        <path d="M9.5 21v-6h5v6"></path>
-      </svg>
-      <span class="nav-label">Accueil</span>
+    <button class="nav-button active" data-page="dashboard">
+      <span class="nav-icon">⌂</span> Tableau de bord
     </button>
 
-    <button class="nav-item" data-target="search" aria-label="Recherche">
-      <svg class="icon" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="1.8"
-        stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="10.8" cy="10.8" r="6.8"></circle>
-        <path d="m16 16 5 5"></path>
-      </svg>
-      <span class="nav-label">Recherche</span>
+    <button class="nav-button" data-page="courses">
+      <span class="nav-icon">▣</span> Mes cours
     </button>
 
-    <button class="nav-item" data-target="favorites" aria-label="Favoris">
-      <svg class="icon" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="1.8"
-        stroke-linecap="round" stroke-linejoin="round">
-        <path d="m12 20.5-1.45-1.32C5.4 14.52 2 11.43 2 7.65
-          2 4.56 4.42 2.2 7.5 2.2c1.74 0 3.41.81 4.5 2.08
-          1.09-1.27 2.76-2.08 4.5-2.08 3.08 0 5.5 2.36
-          5.5 5.45 0 3.78-3.4 6.87-8.55 11.53L12 20.5Z">
-        </path>
-      </svg>
-      <span class="nav-label">Favoris</span>
+    <button class="nav-button" data-page="agenda">
+      <span class="nav-icon">□</span> Emploi du temps
     </button>
 
-    <button class="nav-item" data-target="profile" aria-label="Profil">
-      <svg class="icon" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="1.8"
-        stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="8" r="3.5"></circle>
-        <path d="M4.5 21c.65-3.55 3.1-5.5 7.5-5.5s6.85 1.95 7.5 5.5"></path>
-      </svg>
-      <span class="nav-label">Profil</span>
+    <button class="nav-button" data-page="tasks">
+      <span class="nav-icon">✓</span> Devoirs
+    </button>
+
+    <button class="nav-button" data-page="quicknotes">
+      <span class="nav-icon">▤</span> Notes rapides
+    </button>
+
+    <div class="nav-title">Productivité</div>
+
+    <button class="nav-button" data-page="pomodoro">
+      <span class="nav-icon">◷</span> Pomodoro
+    </button>
+
+    <button class="nav-button" data-page="objectives">
+      <span class="nav-icon">◎</span> Objectifs
+    </button>
+
+    <button class="nav-button" data-page="tools">
+      <span class="nav-icon">⚙</span> Outils
     </button>
   </nav>
 
-  <script>
-    /*
-      Liquid Glass Navigation
-      Version : v1.0.0
-    */
+  <div class="sidebar-bottom">
+    <button class="nav-button" data-page="settings">
+      <span class="nav-icon">⚙</span> Paramètres
+    </button>
+  </div>
+</aside>
 
-    const navigationItems = document.querySelectorAll(".nav-item");
-    const sections = document.querySelectorAll(".page-section");
+<main class="main">
 
-    navigationItems.forEach((item) => {
-      item.addEventListener("click", () => {
-        const targetId = item.dataset.target;
+<header class="topbar">
+  <div class="search">
+    <span>⌕</span>
+    <input id="globalSearch" placeholder="Rechercher dans StudySpace...">
+  </div>
 
-        navigationItems.forEach((navItem) => {
-          navItem.classList.remove("active");
-          navItem.setAttribute("aria-current", "false");
-        });
+  <div class="top-actions">
+    <button class="icon-button" id="themeButton">☾</button>
+    <button class="icon-button" id="quickAddButton">+</button>
+  </div>
+</header>
 
-        sections.forEach((section) => {
-          section.classList.remove("active");
-        });
+<div class="content">
 
-        item.classList.add("active");
-        item.setAttribute("aria-current", "page");
+<section class="page active" id="page-dashboard">
+  <div class="welcome">
+    <h2 id="welcomeTitle">Bonjour 👋</h2>
+    <p id="todayLabel"></p>
+  </div>
 
-        const targetSection = document.getElementById(targetId);
+  <div class="stats-grid">
+    <div class="card stat">
+      <div class="stat-label">COURS</div>
+      <div class="stat-value" id="statCourses">0</div>
+      <div class="stat-note">matières enregistrées</div>
+    </div>
 
-        if (targetSection) {
-          targetSection.classList.add("active");
-        }
-      });
+    <div class="card stat">
+      <div class="stat-label">DEVOIRS</div>
+      <div class="stat-value" id="statTasks">0</div>
+      <div class="stat-note">à terminer</div>
+    </div>
+
+    <div class="card stat">
+      <div class="stat-label">ÉVÉNEMENTS</div>
+      <div class="stat-value" id="statEvents">0</div>
+      <div class="stat-note">dans ton agenda</div>
+    </div>
+
+    <div class="card stat">
+      <div class="stat-label">OBJECTIFS</div>
+      <div class="stat-value" id="statObjectives">0%</div>
+      <div class="stat-note">progression globale</div>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    <div class="card card-padding">
+      <div class="section-title">
+        <span>À faire prochainement</span>
+        <button class="button button-secondary" onclick="navigate('tasks')">Voir tout</button>
+      </div>
+      <div id="dashboardTasks"></div>
+    </div>
+
+    <div class="card card-padding">
+      <div class="section-title">
+        <span>Prochains événements</span>
+        <button class="button button-secondary" onclick="navigate('agenda')">Agenda</button>
+      </div>
+      <div id="dashboardEvents"></div>
+    </div>
+  </div>
+</section>
+
+<section class="page" id="page-courses">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Mes cours</h1>
+      <div class="page-subtitle">Organise tes matières et prends tes notes.</div>
+    </div>
+    <button class="button button-primary" id="addSubjectButton">+ Nouvelle matière</button>
+  </div>
+
+  <div class="courses-layout">
+    <div class="card subject-list" id="subjectList"></div>
+
+    <div class="card card-padding">
+      <div class="course-head">
+        <div>
+          <h2 id="selectedSubjectTitle">Sélectionne une matière</h2>
+          <p>Tes notes seront sauvegardées automatiquement.</p>
+        </div>
+
+        <button class="button button-danger" id="deleteSubjectButton">Supprimer</button>
+      </div>
+
+      <div class="notes-toolbar">
+        <button class="button button-secondary" id="boldButton">Gras</button>
+        <button class="button button-secondary" id="dateButton">Insérer la date</button>
+        <button class="button button-secondary" id="exportNoteButton">Exporter</button>
+      </div>
+
+      <textarea id="courseNotes" class="textarea" placeholder="Commence à écrire ton cours ici..."></textarea>
+      <div class="notes-meta" id="notesMeta"></div>
+    </div>
+  </div>
+</section>
+
+<section class="page" id="page-agenda">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Emploi du temps</h1>
+      <div class="page-subtitle">Organise tes cours, devoirs et contrôles.</div>
+    </div>
+  </div>
+
+  <div class="agenda-layout">
+    <div class="card card-padding">
+      <div class="calendar-toolbar">
+        <button class="button button-secondary" id="previousWeek">‹</button>
+        <h2 id="weekTitle"></h2>
+        <button class="button button-secondary" id="nextWeek">›</button>
+      </div>
+
+      <div class="agenda-pc">
+        <div class="week-grid" id="weekGrid"></div>
+      </div>
+
+      <div class="mobile-agenda" id="mobileAgenda"></div>
+    </div>
+
+    <div class="card card-padding">
+      <div class="section-title">Ajouter un événement</div>
+
+      <label class="label">Titre</label>
+      <input class="input" id="eventTitle" placeholder="Ex : Mathématiques">
+
+      <br><br>
+
+      <label class="label">Date</label>
+      <input class="input" id="eventDate" type="date">
+
+      <br><br>
+
+      <label class="label">Heure</label>
+      <input class="input" id="eventTime" type="time">
+
+      <br><br>
+
+      <label class="label">Type</label>
+      <select class="select" id="eventType">
+        <option>Cours</option>
+        <option>Devoir</option>
+        <option>Contrôle</option>
+        <option>Révision</option>
+        <option>Personnel</option>
+      </select>
+
+      <br><br>
+
+      <label class="label">Couleur</label>
+      <input class="input" id="eventColor" type="color" value="#536dfe">
+
+      <br><br>
+
+      <button class="button button-primary" style="width:100%" id="addEventButton">
+        Ajouter à l’agenda
+      </button>
+    </div>
+  </div>
+</section>
+
+<section class="page" id="page-tasks">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Devoirs et contrôles</h1>
+      <div class="page-subtitle">Ne laisse plus aucun devoir de côté.</div>
+    </div>
+  </div>
+
+  <div class="card card-padding">
+    <div class="task-form">
+      <input class="input" id="taskName" placeholder="Nom du devoir">
+      <input class="input" id="taskDate" type="date">
+
+      <select class="select" id="taskPriority">
+        <option>Normale</option>
+        <option>Importante</option>
+        <option>Urgente</option>
+      </select>
+
+      <button class="button button-primary" id="addTaskButton">Ajouter</button>
+    </div>
+
+    <div class="task-list" id="taskList"></div>
+  </div>
+</section>
+
+<section class="page" id="page-quicknotes">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Notes rapides</h1>
+      <div class="page-subtitle">Pour tes idées et rappels.</div>
+    </div>
+
+    <button class="button button-primary" id="addQuickNoteButton">+ Nouvelle note</button>
+  </div>
+
+  <div class="quick-notes" id="quickNotes"></div>
+</section>
+
+<section class="page" id="page-pomodoro">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Pomodoro</h1>
+      <div class="page-subtitle">Travaille par sessions concentrées.</div>
+    </div>
+  </div>
+
+  <div class="card card-padding pomodoro">
+    <div class="actions" style="justify-content:center">
+      <button class="button button-primary" data-mode="work">Travail · 25 min</button>
+      <button class="button button-secondary" data-mode="short">Pause · 5 min</button>
+      <button class="button button-secondary" data-mode="long">Pause longue · 15 min</button>
+    </div>
+
+    <div class="timer-ring">
+      <div class="timer-inner">
+        <div class="timer" id="timer">25:00</div>
+      </div>
+    </div>
+
+    <input class="input" id="pomodoroTask" placeholder="Sur quoi travailles-tu ?">
+
+    <br><br>
+
+    <div class="actions" style="justify-content:center">
+      <button class="button button-secondary" id="resetTimer">Réinitialiser</button>
+      <button class="button button-primary" id="startTimer">Démarrer</button>
+    </div>
+
+    <p class="notes-meta" id="pomodoroStats">Sessions terminées : 0</p>
+  </div>
+</section>
+
+<section class="page" id="page-objectives">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Objectifs</h1>
+      <div class="page-subtitle">Fixe tes objectifs et suis tes progrès.</div>
+    </div>
+  </div>
+
+  <div class="card card-padding">
+    <div class="task-form">
+      <input class="input" id="objectiveName" placeholder="Ex : Réviser les fonctions">
+
+      <select class="select" id="objectivePeriod">
+        <option>Aujourd'hui</option>
+        <option>Cette semaine</option>
+        <option>Ce mois</option>
+        <option>Cette année</option>
+      </select>
+
+      <div></div>
+
+      <button class="button button-primary" id="addObjectiveButton">Ajouter</button>
+    </div>
+
+    <div class="task-list" id="objectiveList"></div>
+  </div>
+</section>
+
+<section class="page" id="page-tools">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Outils étudiants</h1>
+      <div class="page-subtitle">Quelques outils pratiques.</div>
+    </div>
+  </div>
+
+  <div class="settings-grid">
+    <div class="card card-padding">
+      <div class="section-title">Calculatrice</div>
+      <input class="input" id="calculatorDisplay" readonly value="0">
+
+      <br><br>
+
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px">
+        <button class="button button-secondary calc">7</button>
+        <button class="button button-secondary calc">8</button>
+        <button class="button button-secondary calc">9</button>
+        <button class="button button-secondary calc">/</button>
+        <button class="button button-secondary calc">4</button>
+        <button class="button button-secondary calc">5</button>
+        <button class="button button-secondary calc">6</button>
+        <button class="button button-secondary calc">*</button>
+        <button class="button button-secondary calc">1</button>
+        <button class="button button-secondary calc">2</button>
+        <button class="button button-secondary calc">3</button>
+        <button class="button button-secondary calc">-</button>
+        <button class="button button-secondary calc">0</button>
+        <button class="button button-secondary calc">.</button>
+        <button class="button button-danger" id="clearCalc">C</button>
+        <button class="button button-primary" id="equalCalc">=</button>
+      </div>
+    </div>
+
+    <div class="card card-padding">
+      <div class="section-title">Calcul de moyenne</div>
+
+      <label class="label">Notes séparées par des virgules</label>
+      <input class="input" id="grades" placeholder="14, 12.5, 16">
+
+      <br><br>
+
+      <label class="label">Coefficients</label>
+      <input class="input" id="coefficients" placeholder="1, 1, 2">
+
+      <br><br>
+
+      <button class="button button-primary" id="calculateAverage">Calculer</button>
+      <h2 id="averageResult"></h2>
+    </div>
+  </div>
+</section>
+
+<section class="page" id="page-settings">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Paramètres</h1>
+      <div class="page-subtitle">Personnalise ton espace.</div>
+    </div>
+  </div>
+
+  <div class="settings-grid">
+    <div class="card card-padding">
+      <div class="section-title">Profil</div>
+
+      <label class="label">Ton prénom</label>
+      <input class="input" id="profileName" placeholder="Ex : Léo-Paul">
+
+      <br><br>
+
+      <label class="label">Ta classe</label>
+      <input class="input" id="profileClass" placeholder="Ex : Seconde">
+
+      <br><br>
+
+      <button class="button button-primary" id="saveProfile">Enregistrer le profil</button>
+
+      <div class="version-card">
+        <span>Version de StudySpace</span>
+        <strong>V2.3</strong>
+      </div>
+    </div>
+
+    <div class="card card-padding">
+      <div class="section-title">Données</div>
+      <p class="notes-meta">Sauvegarde ou restaure tes données.</p>
+
+      <div class="actions">
+        <button class="button button-secondary" id="exportData">Exporter</button>
+        <button class="button button-secondary" id="importData">Importer</button>
+        <input type="file" id="importFile" accept=".json" hidden>
+      </div>
+
+      <br>
+
+      <button class="button button-danger" id="resetData">
+        Réinitialiser toutes les données
+      </button>
+    </div>
+  </div>
+</section>
+
+</div>
+</main>
+
+<nav class="mobile-menu">
+  <button class="active" data-page="dashboard"><span>⌂</span>Accueil</button>
+  <button data-page="courses"><span>▣</span>Cours</button>
+  <button data-page="agenda"><span>□</span>Agenda</button>
+  <button data-page="tasks"><span>✓</span>Devoirs</button>
+  <button data-page="pomodoro"><span>◷</span>Focus</button>
+</nav>
+
+<script>
+"use strict";
+
+const VERSION="2.3";
+
+const Store={
+  get(key,fallback){
+    try{
+      const value=localStorage.getItem(key);
+      return value?JSON.parse(value):fallback;
+    }catch{
+      return fallback;
+    }
+  },
+  set(key,value){
+    localStorage.setItem(key,JSON.stringify(value));
+  }
+};
+
+function createId(){
+  return crypto.randomUUID
+    ?crypto.randomUUID()
+    :Date.now().toString(36)+Math.random().toString(36).slice(2);
+}
+
+function escapeHtml(value){
+  return String(value??"")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function dateKey(date){
+  const y=date.getFullYear();
+  const m=String(date.getMonth()+1).padStart(2,"0");
+  const d=String(date.getDate()).padStart(2,"0");
+  return `${y}-${m}-${d}`;
+}
+
+function formatDate(value){
+  if(!value)return"Sans date";
+  return new Date(value+"T12:00:00").toLocaleDateString("fr-FR",{
+    day:"numeric",
+    month:"short",
+    year:"numeric"
+  });
+}
+
+function downloadFile(name,content,type){
+  const blob=new Blob([content],{type});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement("a");
+  link.href=url;
+  link.download=name;
+  link.click();
+  setTimeout(()=>URL.revokeObjectURL(url),500);
+}
+
+const defaultData={
+  subjects:[
+    {id:createId(),name:"Mathématiques",color:"#536dfe",notes:""},
+    {id:createId(),name:"Français",color:"#c05df5",notes:""},
+    {id:createId(),name:"Physique",color:"#18a878",notes:""}
+  ],
+  events:[],
+  tasks:[],
+  quickNotes:[],
+  objectives:[],
+  pomodoroSessions:0,
+  profile:{name:"",className:""}
+};
+
+let data=Store.get("studyspaceData",defaultData);
+let selectedSubjectId=data.subjects[0]?.id||null;
+let currentPage="dashboard";
+let weekOffset=0;
+
+function save(){
+  Store.set("studyspaceData",data);
+  renderAll();
+}
+
+function navigate(page){
+  if(!document.getElementById("page-"+page))return;
+
+  document.querySelectorAll(".page").forEach(section=>{
+    section.classList.toggle("active",section.id==="page-"+page);
+  });
+
+  document.querySelectorAll("[data-page]").forEach(button=>{
+    button.classList.toggle("active",button.dataset.page===page);
+  });
+
+  currentPage=page;
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+document.querySelectorAll("[data-page]").forEach(button=>{
+  button.addEventListener("click",()=>navigate(button.dataset.page));
+});
+
+document.documentElement.dataset.theme=
+  Store.get("studyspaceTheme","light");
+
+document.getElementById("themeButton").addEventListener("click",()=>{
+  const theme=document.documentElement.dataset.theme==="dark"
+    ?"light"
+    :"dark";
+
+  document.documentElement.dataset.theme=theme;
+  Store.set("studyspaceTheme",theme);
+});
+
+function renderProfile(){
+  const name=data.profile.name||"étudiant";
+
+  document.getElementById("welcomeTitle").textContent=`Bonjour ${name} 👋`;
+
+  document.getElementById("todayLabel").textContent=
+    new Date().toLocaleDateString("fr-FR",{
+      weekday:"long",
+      day:"numeric",
+      month:"long",
+      year:"numeric"
     });
-  </script>
+
+  document.getElementById("profileName").value=data.profile.name||"";
+  document.getElementById("profileClass").value=data.profile.className||"";
+}
+
+document.getElementById("saveProfile").addEventListener("click",()=>{
+  data.profile.name=document.getElementById("profileName").value.trim();
+  data.profile.className=document.getElementById("profileClass").value.trim();
+  save();
+});
+
+function renderSubjects(){
+  const list=document.getElementById("subjectList");
+
+  if(!data.subjects.length){
+    list.innerHTML=`<div class="empty">Aucune matière.</div>`;
+    return;
+  }
+
+  list.innerHTML=data.subjects.map(subject=>`
+    <div class="subject ${subject.id===selectedSubjectId?"active":""}" data-id="${subject.id}">
+      <span class="subject-color" style="background:${subject.color}"></span>
+      <span>${escapeHtml(subject.name)}</span>
+    </div>
+  `).join("");
+
+  list.querySelectorAll(".subject").forEach(element=>{
+    element.addEventListener("click",()=>{
+      selectedSubjectId=element.dataset.id;
+      renderSubjects();
+      renderSelectedSubject();
+    });
+  });
+}
+
+function renderSelectedSubject(){
+  const subject=data.subjects.find(item=>item.id===selectedSubjectId);
+  const notes=document.getElementById("courseNotes");
+
+  if(!subject){
+    notes.value="";
+    notes.disabled=true;
+    document.getElementById("selectedSubjectTitle").textContent=
+      "Sélectionne une matière";
+    document.getElementById("notesMeta").textContent="";
+    return;
+  }
+
+  notes.disabled=false;
+  notes.value=subject.notes||"";
+  document.getElementById("selectedSubjectTitle").textContent=subject.name;
+  document.getElementById("notesMeta").textContent="Sauvegarde automatique activée.";
+}
+
+document.getElementById("courseNotes").addEventListener("input",event=>{
+  const subject=data.subjects.find(item=>item.id===selectedSubjectId);
+  if(!subject)return;
+
+  subject.notes=event.target.value;
+  Store.set("studyspaceData",data);
+});
+
+document.getElementById("addSubjectButton").addEventListener("click",()=>{
+  const name=prompt("Nom de la matière :");
+  if(!name?.trim())return;
+
+  const colors=["#536dfe","#c05df5","#18a878","#ed9c28","#e05252"];
+
+  const subject={
+    id:createId(),
+    name:name.trim(),
+    color:colors[data.subjects.length%colors.length],
+    notes:""
+  };
+
+  data.subjects.push(subject);
+  selectedSubjectId=subject.id;
+  save();
+  navigate("courses");
+});
+
+document.getElementById("deleteSubjectButton").addEventListener("click",()=>{
+  const subject=data.subjects.find(item=>item.id===selectedSubjectId);
+  if(!subject)return;
+  if(!confirm(`Supprimer "${subject.name}" ?`))return;
+
+  data.subjects=data.subjects.filter(item=>item.id!==selectedSubjectId);
+  selectedSubjectId=data.subjects[0]?.id||null;
+  save();
+});
+
+document.getElementById("dateButton").addEventListener("click",()=>{
+  const notes=document.getElementById("courseNotes");
+  notes.value+=`\n\n--- ${new Date().toLocaleDateString("fr-FR")} ---\n`;
+  notes.dispatchEvent(new Event("input"));
+});
+
+document.getElementById("boldButton").addEventListener("click",()=>{
+  const notes=document.getElementById("courseNotes");
+  const start=notes.selectionStart;
+  const end=notes.selectionEnd;
+  const selected=notes.value.slice(start,end);
+
+  notes.value=
+    notes.value.slice(0,start)+"**"+selected+"**"+notes.value.slice(end);
+
+  notes.dispatchEvent(new Event("input"));
+});
+
+document.getElementById("exportNoteButton").addEventListener("click",()=>{
+  const subject=data.subjects.find(item=>item.id===selectedSubjectId);
+  if(!subject)return;
+
+  downloadFile(subject.name+".txt",subject.notes||"","text/plain");
+});
+
+function getMonday(offset=0){
+  const now=new Date();
+  const day=now.getDay();
+  const monday=new Date(now);
+
+  monday.setDate(now.getDate()-(day===0?6:day-1)+offset*7);
+  monday.setHours(0,0,0,0);
+
+  return monday;
+}
+
+function renderAgenda(){
+  const monday=getMonday(weekOffset);
+  const days=[];
+  const names=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
+
+  for(let i=0;i<7;i++){
+    const day=new Date(monday);
+    day.setDate(monday.getDate()+i);
+    days.push(day);
+  }
+
+  const first=days[0].toLocaleDateString("fr-FR",{day:"numeric",month:"long"});
+  const last=days[6].toLocaleDateString("fr-FR",{
+    day:"numeric",
+    month:"long",
+    year:"numeric"
+  });
+
+  document.getElementById("weekTitle").textContent=`${first} — ${last}`;
+
+  document.getElementById("weekGrid").innerHTML=days.map((day,index)=>{
+    const key=dateKey(day);
+    const events=data.events
+      .filter(event=>event.date===key)
+      .sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+
+    return`
+      <div class="day-column">
+        <div class="day-name">${names[index]}</div>
+        <div class="day-date">${day.getDate()}</div>
+        ${
+          events.length
+          ?events.map(event=>`
+            <div class="event" style="background:${event.color}">
+              <button class="event-delete" onclick="deleteEvent('${event.id}')">×</button>
+              <strong>${escapeHtml(event.title)}</strong>
+              <small>${event.time||"Toute la journée"}</small>
+              <small>${escapeHtml(event.type)}</small>
+            </div>
+          `).join("")
+          :`<div class="empty">Aucun</div>`
+        }
+      </div>
+    `;
+  }).join("");
+
+  document.getElementById("mobileAgenda").innerHTML=days.map((day,index)=>{
+    const key=dateKey(day);
+    const today=key===dateKey(new Date());
+
+    const events=data.events
+      .filter(event=>event.date===key)
+      .sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+
+    return`
+      <div class="mobile-day ${today?"today":""}">
+        <div class="mobile-day-header">
+          <span class="mobile-day-name">${names[index]}</span>
+          <span class="mobile-day-date">
+            ${day.getDate()} ${day.toLocaleDateString("fr-FR",{month:"short"})}
+          </span>
+        </div>
+
+        ${
+          events.length
+          ?events.map(event=>`
+            <div class="mobile-event">
+              <div class="mobile-event-time">${event.time||"—"}</div>
+              <div class="mobile-event-color" style="background:${event.color}"></div>
+              <div class="mobile-event-content">
+                <div class="mobile-event-title">${escapeHtml(event.title)}</div>
+                <div class="mobile-event-type">${escapeHtml(event.type)}</div>
+              </div>
+              <button class="mobile-event-delete" onclick="deleteEvent('${event.id}')">×</button>
+            </div>
+          `).join("")
+          :`<div class="empty">Aucun événement</div>`
+        }
+      </div>
+    `;
+  }).join("");
+}
+
+document.getElementById("previousWeek").addEventListener("click",()=>{
+  weekOffset--;
+  renderAgenda();
+});
+
+document.getElementById("nextWeek").addEventListener("click",()=>{
+  weekOffset++;
+  renderAgenda();
+});
+
+document.getElementById("addEventButton").addEventListener("click",()=>{
+  const title=document.getElementById("eventTitle").value.trim();
+  const date=document.getElementById("eventDate").value;
+
+  if(!title||!date){
+    alert("Le titre et la date sont obligatoires.");
+    return;
+  }
+
+  data.events.push({
+    id:createId(),
+    title,
+    date,
+    time:document.getElementById("eventTime").value,
+    type:document.getElementById("eventType").value,
+    color:document.getElementById("eventColor").value
+  });
+
+  document.getElementById("eventTitle").value="";
+  document.getElementById("eventTime").value="";
+  save();
+});
+
+function deleteEvent(id){
+  data.events=data.events.filter(event=>event.id!==id);
+  save();
+}
+
+function renderTasks(){
+  const list=document.getElementById("taskList");
+
+  const tasks=[...data.tasks].sort((a,b)=>
+    Number(a.done)-Number(b.done)||(a.date||"").localeCompare(b.date||"")
+  );
+
+  if(!tasks.length){
+    list.innerHTML=`<div class="empty">Aucun devoir enregistré.</div>`;
+    return;
+  }
+
+  list.innerHTML=tasks.map(task=>`
+    <div class="task ${task.done?"done":""}">
+      <div class="task-check" onclick="toggleTask('${task.id}')">${task.done?"✓":""}</div>
+      <div class="task-info">
+        <div class="task-name">${escapeHtml(task.name)}</div>
+        <div class="task-meta">
+          ${task.date?formatDate(task.date):"Sans date"} · ${escapeHtml(task.priority)}
+        </div>
+      </div>
+      <button class="button button-danger" onclick="deleteTask('${task.id}')">Supprimer</button>
+    </div>
+  `).join("");
+}
+
+document.getElementById("addTaskButton").addEventListener("click",()=>{
+  const name=document.getElementById("taskName").value.trim();
+
+  if(!name){
+    alert("Écris le nom du devoir.");
+    return;
+  }
+
+  data.tasks.push({
+    id:createId(),
+    name,
+    date:document.getElementById("taskDate").value,
+    priority:document.getElementById("taskPriority").value,
+    done:false
+  });
+
+  document.getElementById("taskName").value="";
+  document.getElementById("taskDate").value="";
+  save();
+});
+
+function toggleTask(id){
+  const task=data.tasks.find(item=>item.id===id);
+  if(!task)return;
+  task.done=!task.done;
+  save();
+}
+
+function deleteTask(id){
+  data.tasks=data.tasks.filter(task=>task.id!==id);
+  save();
+}
+
+function renderQuickNotes(){
+  const container=document.getElementById("quickNotes");
+
+  if(!data.quickNotes.length){
+    container.innerHTML=`<div class="card empty">Aucune note rapide.</div>`;
+    return;
+  }
+
+  container.innerHTML=data.quickNotes.map(note=>`
+    <div class="quick-note">
+      <button style="float:right;background:transparent;font-size:18px"
+        onclick="deleteQuickNote('${note.id}')">×</button>
+      <textarea data-note-id="${note.id}" placeholder="Écris ta note...">${escapeHtml(note.text)}</textarea>
+      <small>${formatDate(note.createdAt.slice(0,10))}</small>
+    </div>
+  `).join("");
+
+  container.querySelectorAll("textarea").forEach(area=>{
+    area.addEventListener("input",event=>{
+      const note=data.quickNotes.find(item=>item.id===event.target.dataset.noteId);
+      if(note){
+        note.text=event.target.value;
+        Store.set("studyspaceData",data);
+      }
+    });
+  });
+}
+
+document.getElementById("addQuickNoteButton").addEventListener("click",()=>{
+  data.quickNotes.unshift({
+    id:createId(),
+    text:"",
+    createdAt:new Date().toISOString()
+  });
+
+  save();
+  navigate("quicknotes");
+});
+
+function deleteQuickNote(id){
+  data.quickNotes=data.quickNotes.filter(note=>note.id!==id);
+  save();
+}
+
+function renderObjectives(){
+  const list=document.getElementById("objectiveList");
+
+  if(!data.objectives.length){
+    list.innerHTML=`<div class="empty">Aucun objectif.</div>`;
+    return;
+  }
+
+  list.innerHTML=data.objectives.map(objective=>`
+    <div class="task ${objective.done?"done":""}">
+      <div class="task-check" onclick="toggleObjective('${objective.id}')">
+        ${objective.done?"✓":""}
+      </div>
+      <div class="task-info">
+        <div class="task-name">${escapeHtml(objective.name)}</div>
+        <div class="task-meta">${escapeHtml(objective.period)}</div>
+      </div>
+      <button class="button button-danger" onclick="deleteObjective('${objective.id}')">
+        Supprimer
+      </button>
+    </div>
+  `).join("");
+}
+
+document.getElementById("addObjectiveButton").addEventListener("click",()=>{
+  const name=document.getElementById("objectiveName").value.trim();
+  if(!name)return;
+
+  data.objectives.push({
+    id:createId(),
+    name,
+    period:document.getElementById("objectivePeriod").value,
+    done:false
+  });
+
+  document.getElementById("objectiveName").value="";
+  save();
+});
+
+function toggleObjective(id){
+  const objective=data.objectives.find(item=>item.id===id);
+  if(!objective)return;
+  objective.done=!objective.done;
+  save();
+}
+
+function deleteObjective(id){
+  data.objectives=data.objectives.filter(item=>item.id!==id);
+  save();
+}
+
+const modes={work:1500,short:300,long:900};
+let currentMode="work";
+let remaining=modes.work;
+let timerInterval=null;
+
+function updateTimer(){
+  const minutes=Math.floor(remaining/60);
+  const seconds=remaining%60;
+
+  document.getElementById("timer").textContent=
+    `${String(minutes).padStart(2,"0")}:${String(seconds).padStart(2,"0")}`;
+}
+
+document.querySelectorAll("[data-mode]").forEach(button=>{
+  button.addEventListener("click",()=>{
+    currentMode=button.dataset.mode;
+    remaining=modes[currentMode];
+    updateTimer();
+
+    document.querySelectorAll("[data-mode]").forEach(item=>{
+      item.classList.remove("button-primary");
+      item.classList.add("button-secondary");
+    });
+
+    button.classList.remove("button-secondary");
+    button.classList.add("button-primary");
+  });
+});
+
+document.getElementById("startTimer").addEventListener("click",()=>{
+  if(timerInterval){
+    clearInterval(timerInterval);
+    timerInterval=null;
+    document.getElementById("startTimer").textContent="Démarrer";
+    return;
+  }
+
+  document.getElementById("startTimer").textContent="Pause";
+
+  timerInterval=setInterval(()=>{
+    remaining--;
+    updateTimer();
+
+    if(remaining<=0){
+      clearInterval(timerInterval);
+      timerInterval=null;
+
+      if(currentMode==="work"){
+        data.pomodoroSessions++;
+        Store.set("studyspaceData",data);
+      }
+
+      alert("Session terminée !");
+      remaining=modes[currentMode];
+      updateTimer();
+      renderAll();
+    }
+  },1000);
+});
+
+document.getElementById("resetTimer").addEventListener("click",()=>{
+  clearInterval(timerInterval);
+  timerInterval=null;
+  remaining=modes[currentMode];
+  updateTimer();
+  document.getElementById("startTimer").textContent="Démarrer";
+});
+
+let expression="";
+
+document.querySelectorAll(".calc").forEach(button=>{
+  button.addEventListener("click",()=>{
+    expression+=button.textContent;
+    document.getElementById("calculatorDisplay").value=expression;
+  });
+});
+
+document.getElementById("clearCalc").addEventListener("click",()=>{
+  expression="";
+  document.getElementById("calculatorDisplay").value="0";
+});
+
+document.getElementById("equalCalc").addEventListener("click",()=>{
+  try{
+    if(!/^[0-9+\-*/.() ]+$/.test(expression))throw new Error();
+
+    expression=String(Function(`"use strict";return(${expression})`)());
+    document.getElementById("calculatorDisplay").value=expression;
+  }catch{
+    expression="";
+    document.getElementById("calculatorDisplay").value="Erreur";
+  }
+});
+
+document.getElementById("calculateAverage").addEventListener("click",()=>{
+  const grades=document.getElementById("grades").value.split(",").map(Number).filter(Number.isFinite);
+  const coefficients=document.getElementById("coefficients").value.split(",").map(Number).filter(Number.isFinite);
+
+  if(!grades.length)return;
+
+  const total=grades.reduce((sum,grade,index)=>{
+    return sum+grade*(coefficients[index]||1);
+  },0);
+
+  const totalCoefficients=grades.reduce((sum,grade,index)=>{
+    return sum+(coefficients[index]||1);
+  },0);
+
+  document.getElementById("averageResult").textContent=
+    `Moyenne : ${(total/totalCoefficients).toFixed(2)} / 20`;
+});
+
+document.getElementById("exportData").addEventListener("click",()=>{
+  downloadFile(
+    "studyspace-v2.3-sauvegarde.json",
+    JSON.stringify(data,null,2),
+    "application/json"
+  );
+});
+
+document.getElementById("importData").addEventListener("click",()=>{
+  document.getElementById("importFile").click();
+});
+
+document.getElementById("importFile").addEventListener("change",event=>{
+  const file=event.target.files[0];
+  if(!file)return;
+
+  const reader=new FileReader();
+
+  reader.onload=()=>{
+    try{
+      data=JSON.parse(reader.result);
+      selectedSubjectId=data.subjects[0]?.id||null;
+      save();
+      alert("Sauvegarde importée.");
+    }catch{
+      alert("Fichier invalide.");
+    }
+  };
+
+  reader.readAsText(file);
+});
+
+document.getElementById("resetData").addEventListener("click",()=>{
+  if(!confirm("Supprimer toutes les données ?"))return;
+
+  localStorage.removeItem("studyspaceData");
+  location.reload();
+});
+
+document.getElementById("quickAddButton").addEventListener("click",()=>{
+  const choice=prompt(
+    "Que veux-tu ajouter ?\n\n"+
+    "1 — Note rapide\n"+
+    "2 — Devoir\n"+
+    "3 — Événement\n"+
+    "4 — Matière"
+  );
+
+  if(choice==="1"){
+    navigate("quicknotes");
+    document.getElementById("addQuickNoteButton").click();
+  }
+
+  if(choice==="2"){
+    navigate("tasks");
+    document.getElementById("taskName").focus();
+  }
+
+  if(choice==="3"){
+    navigate("agenda");
+    document.getElementById("eventTitle").focus();
+  }
+
+  if(choice==="4"){
+    navigate("courses");
+    document.getElementById("addSubjectButton").click();
+  }
+});
+
+document.getElementById("globalSearch").addEventListener("input",event=>{
+  const query=event.target.value.toLowerCase().trim();
+  if(!query)return;
+
+  const subject=data.subjects.find(item=>
+    item.name.toLowerCase().includes(query)||
+    item.notes.toLowerCase().includes(query)
+  );
+
+  if(subject){
+    selectedSubjectId=subject.id;
+    navigate("courses");
+    renderSubjects();
+    renderSelectedSubject();
+    return;
+  }
+
+  const task=data.tasks.find(item=>
+    item.name.toLowerCase().includes(query)
+  );
+
+  if(task)navigate("tasks");
+});
+
+function renderDashboard(){
+  const unfinished=data.tasks.filter(task=>!task.done);
+
+  const upcoming=[...data.events]
+    .filter(event=>event.date>=dateKey(new Date()))
+    .sort((a,b)=>
+      `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`)
+    );
+
+  document.getElementById("statCourses").textContent=data.subjects.length;
+  document.getElementById("statTasks").textContent=unfinished.length;
+  document.getElementById("statEvents").textContent=data.events.length;
+
+  const completed=data.objectives.filter(item=>item.done).length;
+  const percentage=data.objectives.length
+    ?Math.round(completed/data.objectives.length*100)
+    :0;
+
+  document.getElementById("statObjectives").textContent=percentage+"%";
+
+  document.getElementById("dashboardTasks").innerHTML=
+    unfinished.length
+    ?unfinished.slice(0,5).map(task=>`
+      <div class="task">
+        <div class="task-check" onclick="toggleTask('${task.id}')"></div>
+        <div class="task-info">
+          <div class="task-name">${escapeHtml(task.name)}</div>
+          <div class="task-meta">${task.date?formatDate(task.date):"Sans date"}</div>
+        </div>
+      </div>
+    `).join("")
+    :`<div class="empty">Tout est à jour 🎉</div>`;
+
+  document.getElementById("dashboardEvents").innerHTML=
+    upcoming.length
+    ?upcoming.slice(0,5).map(event=>`
+      <div class="task">
+        <div style="width:9px;height:9px;border-radius:50%;background:${event.color}"></div>
+        <div class="task-info">
+          <div class="task-name">${escapeHtml(event.title)}</div>
+          <div class="task-meta">${formatDate(event.date)} · ${event.time||"Toute la journée"}</div>
+        </div>
+      </div>
+    `).join("")
+    :`<div class="empty">Aucun événement prévu.</div>`;
+}
+
+/* Mouvement du reflet Liquid Glass avec le doigt ou la souris */
+
+const glassBar=document.querySelector(".mobile-menu");
+
+if(glassBar){
+
+  glassBar.addEventListener("pointermove",event=>{
+    const rect=glassBar.getBoundingClientRect();
+
+    const x=((event.clientX-rect.left)/rect.width)*100;
+    const y=((event.clientY-rect.top)/rect.height)*100;
+
+    glassBar.style.setProperty("--glass-x",`${x}%`);
+    glassBar.style.setProperty("--glass-y",`${y}%`);
+  });
+
+  glassBar.addEventListener("pointerleave",()=>{
+    glassBar.style.setProperty("--glass-x","50%");
+    glassBar.style.setProperty("--glass-y","0%");
+  });
+
+  glassBar.addEventListener("touchmove",event=>{
+    const touch=event.touches[0];
+    const rect=glassBar.getBoundingClientRect();
+
+    const x=((touch.clientX-rect.left)/rect.width)*100;
+    const y=((touch.clientY-rect.top)/rect.height)*100;
+
+    glassBar.style.setProperty("--glass-x",`${x}%`);
+    glassBar.style.setProperty("--glass-y",`${y}%`);
+  },{passive:true});
+}
+
+/* Navigation par balayage sur mobile */
+
+const swipePages=[
+  "dashboard",
+  "courses",
+  "agenda",
+  "tasks",
+  "quicknotes",
+  "pomodoro",
+  "objectives",
+  "tools",
+  "settings"
+];
+
+let swipeStartX=0;
+let swipeStartY=0;
+
+document.addEventListener("touchstart",event=>{
+  if(window.innerWidth>760)return;
+
+  const touch=event.changedTouches[0];
+  swipeStartX=touch.clientX;
+  swipeStartY=touch.clientY;
+},{passive:true});
+
+document.addEventListener("touchend",event=>{
+  if(window.innerWidth>760)return;
+
+  const touch=event.changedTouches[0];
+  const distanceX=touch.clientX-swipeStartX;
+  const distanceY=touch.clientY-swipeStartY;
+
+  if(
+    Math.abs(distanceX)<75||
+    Math.abs(distanceX)<Math.abs(distanceY)*1.35
+  )return;
+
+  if(event.target.closest("input,textarea,select,.week-grid"))return;
+
+  const index=swipePages.indexOf(currentPage);
+  if(index<0)return;
+
+  if(distanceX<0&&index<swipePages.length-1){
+    navigate(swipePages[index+1]);
+  }
+
+  if(distanceX>0&&index>0){
+    navigate(swipePages[index-1]);
+  }
+},{passive:true});
+
+function renderAll(){
+  renderProfile();
+  renderSubjects();
+  renderSelectedSubject();
+  renderAgenda();
+  renderTasks();
+  renderQuickNotes();
+  renderObjectives();
+  renderDashboard();
+
+  document.getElementById("pomodoroStats").textContent=
+    "Sessions terminées : "+data.pomodoroSessions;
+}
+
+renderAll();
+updateTimer();
+</script>
+
 </body>
 </html>
