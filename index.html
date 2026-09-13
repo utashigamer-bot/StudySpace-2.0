@@ -540,6 +540,15 @@ input,textarea,select{
 
 .schedule-reference-row .label{margin:0}
 
+.tasks-layout{
+  display:grid;
+  grid-template-columns:minmax(0,340px) minmax(0,1fr);
+  gap:22px;
+  align-items:start;
+}
+
+.textarea-compact{min-height:80px;line-height:1.5}
+
 .task-form{
   display:grid;
   grid-template-columns:1fr 180px 130px auto;
@@ -551,7 +560,7 @@ input,textarea,select{
 
 .task{
   display:flex;
-  align-items:center;
+  align-items:flex-start;
   gap:12px;
   padding:14px;
   border:1px solid var(--border);
@@ -568,6 +577,7 @@ input,textarea,select{
   display:grid;
   place-items:center;
   flex-shrink:0;
+  margin-top:2px;
   border:2px solid var(--border);
   border-radius:7px;
   cursor:pointer;
@@ -582,6 +592,57 @@ input,textarea,select{
 .task-info{flex:1}
 .task-name{font-weight:700}
 .task-meta{margin-top:4px;color:var(--muted);font-size:12px}
+
+.task-main{flex:1;min-width:0;cursor:pointer}
+
+.task-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.task-chevron{
+  flex-shrink:0;
+  color:var(--muted);
+  font-size:10px;
+}
+
+.task-badges{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:7px;
+}
+
+.task-badge{
+  padding:2px 9px;
+  border-radius:999px;
+  color:#fff;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.3px;
+}
+
+.task-badge-urgent{background:var(--danger)}
+
+.task-description{
+  margin-top:10px;
+  padding:10px 12px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:var(--surface2);
+  color:var(--text);
+  font-size:13px;
+  line-height:1.6;
+  white-space:pre-wrap;
+}
+
+.task-description.empty-description{color:var(--muted);font-style:italic}
+
+.urgent-card{
+  border:1px solid color-mix(in srgb,var(--danger) 40%,var(--border));
+}
 
 .quick-notes{
   display:grid;
@@ -716,6 +777,7 @@ input,textarea,select{
   }
 
   .task-form{grid-template-columns:1fr}
+  .tasks-layout{grid-template-columns:1fr}
 
   .agenda-layout{display:block}
   .agenda-layout>.card:first-child{margin-bottom:18px}
@@ -1573,6 +1635,14 @@ input,textarea,select{
     </div>
   </div>
 
+  <div class="card card-padding urgent-card" id="urgentTasksCard" style="margin-bottom:22px;display:none">
+    <div class="section-title">
+      <span>⚠️ Devoirs urgents</span>
+      <button class="button button-secondary" onclick="navigate('tasks')">Voir tout</button>
+    </div>
+    <div id="dashboardUrgentTasks"></div>
+  </div>
+
   <div class="dashboard-grid">
     <div class="card card-padding">
       <div class="section-title">
@@ -1736,23 +1806,53 @@ input,textarea,select{
     </div>
   </div>
 
-  <div class="card card-padding">
-    <div class="task-form">
-      <input class="input" id="taskName" placeholder="Nom du devoir">
+  <div class="tasks-layout">
+    <div class="card card-padding">
+      <div class="section-title">Ajouter un devoir</div>
+
+      <label class="label">Nom du devoir</label>
+      <input class="input" id="taskName" placeholder="Ex : Exercices de révision">
+
+      <br><br>
+
+      <label class="label">Matière</label>
+      <select class="select" id="taskSubject">
+        <option value="">Aucune matière</option>
+      </select>
+
+      <br><br>
+
+      <label class="label">Description</label>
+      <textarea class="textarea textarea-compact" id="taskDescription" placeholder="Ex : Exercices 12 à 15 page 34, à rendre au format PDF"></textarea>
+
+      <br><br>
+
+      <label class="label">Date à rendre</label>
       <input class="input" id="taskDate" type="date">
 
+      <br><br>
+
+      <label class="label">Priorité</label>
       <select class="select" id="taskPriority">
         <option>Normale</option>
         <option>Importante</option>
         <option>Urgente</option>
       </select>
 
-      <button class="button button-primary" id="addTaskButton">Ajouter</button>
+      <br><br>
+
+      <button class="button button-primary" style="width:100%" id="addTaskButton">
+        Ajouter le devoir
+      </button>
     </div>
 
-    <div class="task-list" id="taskList"></div>
+    <div class="card card-padding">
+      <div class="section-title">Tous les devoirs</div>
+      <div class="task-list" id="taskList"></div>
+    </div>
   </div>
 </section>
+
 
 <section class="page" id="page-quicknotes">
   <div class="page-header">
@@ -2033,6 +2133,7 @@ let currentPage="dashboard";
 let weekOffset=0;
 let scheduleEditingWeek="A";
 let scheduleEditorOpen=false;
+let expandedTaskId=null;
 
 function save(){
   Store.set("studyspaceData",data);
@@ -2506,6 +2607,16 @@ function deleteEvent(id){
 function renderTasks(){
   const list=document.getElementById("taskList");
 
+  const subjectSelect=document.getElementById("taskSubject");
+  const currentSubjectValue=subjectSelect.value;
+
+  subjectSelect.innerHTML=`<option value="">Aucune matière</option>`+
+    data.subjects.map(subject=>
+      `<option value="${subject.id}">${escapeHtml(subject.name)}</option>`
+    ).join("");
+
+  subjectSelect.value=currentSubjectValue;
+
   const tasks=[...data.tasks].sort((a,b)=>
     Number(a.done)-Number(b.done)||(a.date||"").localeCompare(b.date||"")
   );
@@ -2515,18 +2626,51 @@ function renderTasks(){
     return;
   }
 
-  list.innerHTML=tasks.map(task=>`
-    <div class="task ${task.done?"done":""}">
-      <div class="task-check" onclick="toggleTask('${task.id}')">${task.done?"✓":""}</div>
-      <div class="task-info">
-        <div class="task-name">${escapeHtml(task.name)}</div>
-        <div class="task-meta">
-          ${task.date?formatDate(task.date):"Sans date"} · ${escapeHtml(task.priority)}
+  list.innerHTML=tasks.map(task=>{
+    const subject=data.subjects.find(item=>item.id===task.subjectId);
+    const expanded=expandedTaskId===task.id;
+    const description=(task.description||"").trim();
+
+    return`
+      <div class="task ${task.done?"done":""}">
+        <div class="task-check" onclick="toggleTask('${task.id}')">${task.done?"✓":""}</div>
+        <div class="task-main" onclick="toggleTaskDetails('${task.id}')">
+          <div class="task-top">
+            <div class="task-name">${escapeHtml(task.name)}</div>
+            <span class="task-chevron">${expanded?"▲":"▼"}</span>
+          </div>
+          <div class="task-badges">
+            ${
+              subject
+              ?`<span class="task-badge" style="background:${subject.color}">${escapeHtml(subject.name)}</span>`
+              :""
+            }
+            ${
+              task.priority==="Urgente"
+              ?`<span class="task-badge task-badge-urgent">Urgent</span>`
+              :""
+            }
+          </div>
+          <div class="task-meta">
+            ${task.date?formatDate(task.date):"Sans date"} · ${escapeHtml(task.priority)}
+          </div>
+          ${
+            expanded
+            ?description
+              ?`<div class="task-description">${escapeHtml(description)}</div>`
+              :`<div class="task-description empty-description">Aucune description.</div>`
+            :""
+          }
         </div>
+        <button class="button button-danger" onclick="deleteTask('${task.id}')">Supprimer</button>
       </div>
-      <button class="button button-danger" onclick="deleteTask('${task.id}')">Supprimer</button>
-    </div>
-  `).join("");
+    `;
+  }).join("");
+}
+
+function toggleTaskDetails(id){
+  expandedTaskId=expandedTaskId===id?null:id;
+  renderTasks();
 }
 
 document.getElementById("addTaskButton").addEventListener("click",()=>{
@@ -2540,12 +2684,15 @@ document.getElementById("addTaskButton").addEventListener("click",()=>{
   data.tasks.push({
     id:createId(),
     name,
+    subjectId:document.getElementById("taskSubject").value||null,
+    description:document.getElementById("taskDescription").value.trim(),
     date:document.getElementById("taskDate").value,
     priority:document.getElementById("taskPriority").value,
     done:false
   });
 
   document.getElementById("taskName").value="";
+  document.getElementById("taskDescription").value="";
   document.getElementById("taskDate").value="";
   save();
 });
@@ -2559,6 +2706,7 @@ function toggleTask(id){
 
 function deleteTask(id){
   data.tasks=data.tasks.filter(task=>task.id!==id);
+  if(expandedTaskId===id)expandedTaskId=null;
   save();
 }
 
@@ -2864,6 +3012,7 @@ document.getElementById("globalSearch").addEventListener("input",event=>{
 
 function renderDashboard(){
   const unfinished=data.tasks.filter(task=>!task.done);
+  const urgent=unfinished.filter(task=>task.priority==="Urgente");
 
   const upcoming=[...data.events]
     .filter(event=>event.date>=dateKey(new Date()))
@@ -2882,17 +3031,58 @@ function renderDashboard(){
 
   document.getElementById("statObjectives").textContent=percentage+"%";
 
+  document.getElementById("urgentTasksCard").style.display=
+    urgent.length?"block":"none";
+
+  document.getElementById("dashboardUrgentTasks").innerHTML=
+    urgent.slice(0,5).map(task=>{
+      const subject=data.subjects.find(item=>item.id===task.subjectId);
+
+      return`
+        <div class="task">
+          <div class="task-check" onclick="toggleTask('${task.id}')"></div>
+          <div class="task-info">
+            <div class="task-name">${escapeHtml(task.name)}</div>
+            <div class="task-badges">
+              ${
+                subject
+                ?`<span class="task-badge" style="background:${subject.color}">${escapeHtml(subject.name)}</span>`
+                :""
+              }
+            </div>
+            <div class="task-meta">${task.date?formatDate(task.date):"Sans date"}</div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
   document.getElementById("dashboardTasks").innerHTML=
     unfinished.length
-    ?unfinished.slice(0,5).map(task=>`
-      <div class="task">
-        <div class="task-check" onclick="toggleTask('${task.id}')"></div>
-        <div class="task-info">
-          <div class="task-name">${escapeHtml(task.name)}</div>
-          <div class="task-meta">${task.date?formatDate(task.date):"Sans date"}</div>
+    ?unfinished.slice(0,5).map(task=>{
+      const subject=data.subjects.find(item=>item.id===task.subjectId);
+
+      return`
+        <div class="task">
+          <div class="task-check" onclick="toggleTask('${task.id}')"></div>
+          <div class="task-info">
+            <div class="task-name">${escapeHtml(task.name)}</div>
+            <div class="task-badges">
+              ${
+                subject
+                ?`<span class="task-badge" style="background:${subject.color}">${escapeHtml(subject.name)}</span>`
+                :""
+              }
+              ${
+                task.priority==="Urgente"
+                ?`<span class="task-badge task-badge-urgent">Urgent</span>`
+                :""
+              }
+            </div>
+            <div class="task-meta">${task.date?formatDate(task.date):"Sans date"}</div>
+          </div>
         </div>
-      </div>
-    `).join("")
+      `;
+    }).join("")
     :`<div class="empty">Tout est à jour 🎉</div>`;
 
   document.getElementById("dashboardEvents").innerHTML=
