@@ -461,6 +461,14 @@ input,textarea,select{
 
 .mobile-agenda{display:none}
 
+.schedule-config-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:12px;
+}
+
 .schedule-banner{
   padding:12px 14px;
   margin-bottom:14px;
@@ -716,6 +724,7 @@ input,textarea,select{
 
   .schedule-days{grid-template-columns:1fr}
   .schedule-add-form{grid-template-columns:1fr}
+  .schedule-config-header{flex-wrap:wrap}
 
   .mobile-day{
     padding:15px;
@@ -1626,34 +1635,41 @@ input,textarea,select{
   </div>
 
   <div class="card card-padding" id="scheduleConfigCard" style="margin-bottom:22px">
-    <div class="section-title">Emplois du temps — Semaine A / Semaine B</div>
-
-    <div class="schedule-banner" id="scheduleBanner"></div>
-
-    <div class="actions" style="margin-bottom:14px">
-      <button class="button button-primary" id="scheduleTabA" data-week="A">Semaine A</button>
-      <button class="button button-secondary" id="scheduleTabB" data-week="B">Semaine B</button>
+    <div class="schedule-config-header">
+      <div class="section-title" style="margin:0">Emplois du temps — Semaine A / Semaine B</div>
+      <button class="button button-secondary" id="scheduleEditToggle">Modifier</button>
     </div>
 
-    <div class="schedule-days" id="scheduleDays"></div>
+    <div class="schedule-banner" id="scheduleSummary"></div>
 
-    <div class="schedule-add-form">
-      <select class="select" id="scheduleCourseDay"></select>
-      <input class="input" id="scheduleCourseTitle" placeholder="Ex : Mathématiques">
-      <input class="input" id="scheduleCourseTime" type="time">
-      <input class="input" id="scheduleCourseColor" type="color" value="#536dfe">
-      <button class="button button-primary" id="scheduleAddCourseButton">Ajouter</button>
-    </div>
+    <div id="scheduleEditor">
+      <div class="schedule-banner" id="scheduleBanner"></div>
 
-    <hr style="border:none;border-top:1px solid var(--border);margin:4px 0 16px">
+      <div class="actions" style="margin-bottom:14px">
+        <button class="button button-primary" id="scheduleTabA" data-week="A">Semaine A</button>
+        <button class="button button-secondary" id="scheduleTabB" data-week="B">Semaine B</button>
+      </div>
 
-    <div class="schedule-reference-row">
-      <label class="label">La semaine affichée en ce moment (<span id="scheduleRefMondayLabel"></span>) est la :</label>
-      <select class="select" id="scheduleRefType">
-        <option value="A">Semaine A</option>
-        <option value="B">Semaine B</option>
-      </select>
-      <button class="button button-secondary" id="scheduleRefValidate">Valider cette semaine</button>
+      <div class="schedule-days" id="scheduleDays"></div>
+
+      <div class="schedule-add-form">
+        <select class="select" id="scheduleCourseDay"></select>
+        <input class="input" id="scheduleCourseTitle" placeholder="Ex : Mathématiques">
+        <input class="input" id="scheduleCourseTime" type="time">
+        <input class="input" id="scheduleCourseColor" type="color" value="#536dfe">
+        <button class="button button-primary" id="scheduleAddCourseButton">Ajouter</button>
+      </div>
+
+      <hr style="border:none;border-top:1px solid var(--border);margin:4px 0 16px">
+
+      <div class="schedule-reference-row">
+        <label class="label">La semaine affichée en ce moment (<span id="scheduleRefMondayLabel"></span>) est la :</label>
+        <select class="select" id="scheduleRefType">
+          <option value="A">Semaine A</option>
+          <option value="B">Semaine B</option>
+        </select>
+        <button class="button button-secondary" id="scheduleRefValidate">Valider cette semaine</button>
+      </div>
     </div>
   </div>
 
@@ -1692,7 +1708,6 @@ input,textarea,select{
 
       <label class="label">Type</label>
       <select class="select" id="eventType">
-        <option>Cours</option>
         <option>Devoir</option>
         <option>Contrôle</option>
         <option>Révision</option>
@@ -2017,6 +2032,7 @@ let selectedSubjectId=data.subjects[0]?.id||null;
 let currentPage="dashboard";
 let weekOffset=0;
 let scheduleEditingWeek="A";
+let scheduleEditorOpen=false;
 
 function save(){
   Store.set("studyspaceData",data);
@@ -2211,6 +2227,17 @@ function getWeekType(monday){
 
 function renderScheduleConfig(){
   const monday=getMonday(weekOffset);
+  const configured=Boolean(data.scheduleReference);
+  const showEditor=!configured||scheduleEditorOpen;
+
+  document.getElementById("scheduleEditor").style.display=showEditor?"block":"none";
+  document.getElementById("scheduleSummary").style.display=showEditor?"none":"block";
+  document.getElementById("scheduleSummary").textContent=
+    "✓ Emplois du temps enregistrés. L'application affiche automatiquement la semaine A ou B selon la date.";
+
+  const toggle=document.getElementById("scheduleEditToggle");
+  toggle.style.display=configured?"inline-flex":"none";
+  toggle.textContent=showEditor?"Terminé":"Modifier";
 
   document.getElementById("scheduleTabA").className=
     "button "+(scheduleEditingWeek==="A"?"button-primary":"button-secondary");
@@ -2257,9 +2284,14 @@ function renderScheduleConfig(){
       "L'application alternera ensuite automatiquement chaque semaine.";
   }else{
     banner.textContent=
-      "Emplois du temps configurés : l'application affiche automatiquement la bonne semaine (A ou B) selon la date.";
+      "Modifie les cours ci-dessous si besoin, les changements sont pris en compte immédiatement.";
   }
 }
+
+document.getElementById("scheduleEditToggle").addEventListener("click",()=>{
+  scheduleEditorOpen=!scheduleEditorOpen;
+  renderScheduleConfig();
+});
 
 document.getElementById("scheduleTabA").addEventListener("click",()=>{
   scheduleEditingWeek="A";
@@ -2347,10 +2379,9 @@ function renderAgenda(){
         ${
           courses.map(course=>`
             <div class="event" style="background:${course.color}">
-              <button class="event-delete" onclick="deleteScheduleCourse('${weekType}',${index},'${course.id}')">×</button>
               <strong>${escapeHtml(course.title)}</strong>
               <small>${course.time||"Toute la journée"}</small>
-              <small>Cours (semaine ${weekType})</small>
+              <small>Cours</small>
             </div>
           `).join("")
         }
@@ -2402,9 +2433,8 @@ function renderAgenda(){
               <div class="mobile-event-color" style="background:${course.color}"></div>
               <div class="mobile-event-content">
                 <div class="mobile-event-title">${escapeHtml(course.title)}</div>
-                <div class="mobile-event-type">Cours (semaine ${weekType})</div>
+                <div class="mobile-event-type">Cours</div>
               </div>
-              <button class="mobile-event-delete" onclick="deleteScheduleCourse('${weekType}',${index},'${course.id}')">×</button>
             </div>
           `).join("")
         }
