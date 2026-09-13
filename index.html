@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#536dfe">
-<title>StudySpace V2.5</title>
+<title>StudySpace V2.4</title>
 
 <style>
 :root{
@@ -461,6 +461,77 @@ input,textarea,select{
 
 .mobile-agenda{display:none}
 
+.schedule-banner{
+  padding:12px 14px;
+  margin-bottom:14px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:var(--surface2);
+  color:var(--muted);
+  font-size:13px;
+}
+
+.schedule-days{
+  display:grid;
+  grid-template-columns:repeat(7,minmax(0,1fr));
+  gap:8px;
+  margin-bottom:16px;
+}
+
+.schedule-day{
+  padding:10px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:var(--surface2);
+  min-height:90px;
+}
+
+.schedule-day-name{
+  color:var(--muted);
+  font-size:11px;
+  font-weight:800;
+  text-align:center;
+  text-transform:uppercase;
+  margin-bottom:8px;
+}
+
+.schedule-course{
+  padding:8px;
+  margin-bottom:6px;
+  color:#fff;
+  border-radius:8px;
+  font-size:11px;
+}
+
+.schedule-course strong,.schedule-course small{display:block}
+.schedule-course strong{font-size:12px}
+.schedule-course small{margin-top:2px;opacity:.82}
+
+.schedule-course-delete{
+  float:right;
+  border:0;
+  color:#fff;
+  background:transparent;
+  font-size:15px;
+  line-height:1;
+}
+
+.schedule-add-form{
+  display:grid;
+  grid-template-columns:130px 1fr 110px 60px auto;
+  gap:8px;
+  margin-bottom:16px;
+}
+
+.schedule-reference-row{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.schedule-reference-row .label{margin:0}
+
 .task-form{
   display:grid;
   grid-template-columns:1fr 180px 130px auto;
@@ -642,6 +713,9 @@ input,textarea,select{
   .agenda-layout>.card:first-child{margin-bottom:18px}
   .agenda-pc{display:none}
   .mobile-agenda{display:block}
+
+  .schedule-days{grid-template-columns:1fr}
+  .schedule-add-form{grid-template-columns:1fr}
 
   .mobile-day{
     padding:15px;
@@ -1551,6 +1625,38 @@ input,textarea,select{
     </div>
   </div>
 
+  <div class="card card-padding" id="scheduleConfigCard" style="margin-bottom:22px">
+    <div class="section-title">Emplois du temps — Semaine A / Semaine B</div>
+
+    <div class="schedule-banner" id="scheduleBanner"></div>
+
+    <div class="actions" style="margin-bottom:14px">
+      <button class="button button-primary" id="scheduleTabA" data-week="A">Semaine A</button>
+      <button class="button button-secondary" id="scheduleTabB" data-week="B">Semaine B</button>
+    </div>
+
+    <div class="schedule-days" id="scheduleDays"></div>
+
+    <div class="schedule-add-form">
+      <select class="select" id="scheduleCourseDay"></select>
+      <input class="input" id="scheduleCourseTitle" placeholder="Ex : Mathématiques">
+      <input class="input" id="scheduleCourseTime" type="time">
+      <input class="input" id="scheduleCourseColor" type="color" value="#536dfe">
+      <button class="button button-primary" id="scheduleAddCourseButton">Ajouter</button>
+    </div>
+
+    <hr style="border:none;border-top:1px solid var(--border);margin:4px 0 16px">
+
+    <div class="schedule-reference-row">
+      <label class="label">La semaine affichée en ce moment (<span id="scheduleRefMondayLabel"></span>) est la :</label>
+      <select class="select" id="scheduleRefType">
+        <option value="A">Semaine A</option>
+        <option value="B">Semaine B</option>
+      </select>
+      <button class="button button-secondary" id="scheduleRefValidate">Valider cette semaine</button>
+    </div>
+  </div>
+
   <div class="agenda-layout">
     <div class="card card-padding">
       <div class="calendar-toolbar">
@@ -1893,13 +1999,24 @@ const defaultData={
   quickNotes:[],
   objectives:[],
   pomodoroSessions:0,
-  profile:{name:"",className:""}
+  profile:{name:"",className:""},
+  scheduleTemplates:{A:[[],[],[],[],[],[],[]],B:[[],[],[],[],[],[],[]]},
+  scheduleReference:null
 };
 
 let data=Store.get("studyspaceData",defaultData);
+
+if(!data.scheduleTemplates){
+  data.scheduleTemplates={A:[[],[],[],[],[],[],[]],B:[[],[],[],[],[],[],[]]};
+}
+if(data.scheduleReference===undefined){
+  data.scheduleReference=null;
+}
+
 let selectedSubjectId=data.subjects[0]?.id||null;
 let currentPage="dashboard";
 let weekOffset=0;
+let scheduleEditingWeek="A";
 
 function save(){
   Store.set("studyspaceData",data);
@@ -2076,8 +2193,125 @@ function getMonday(offset=0){
   return monday;
 }
 
+const scheduleDayNames=["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
+
+function otherWeekType(type){
+  return type==="A"?"B":"A";
+}
+
+function getWeekType(monday){
+  if(!data.scheduleReference)return"A";
+
+  const ref=new Date(data.scheduleReference.mondayKey+"T00:00:00");
+  const diffWeeks=Math.round((monday-ref)/(7*24*60*60*1000));
+  const parity=((diffWeeks%2)+2)%2;
+
+  return parity===0?data.scheduleReference.type:otherWeekType(data.scheduleReference.type);
+}
+
+function renderScheduleConfig(){
+  const monday=getMonday(weekOffset);
+
+  document.getElementById("scheduleTabA").className=
+    "button "+(scheduleEditingWeek==="A"?"button-primary":"button-secondary");
+  document.getElementById("scheduleTabB").className=
+    "button "+(scheduleEditingWeek==="B"?"button-primary":"button-secondary");
+
+  document.getElementById("scheduleDays").innerHTML=scheduleDayNames.map((name,index)=>{
+    const courses=[...data.scheduleTemplates[scheduleEditingWeek][index]]
+      .sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+
+    return`
+      <div class="schedule-day">
+        <div class="schedule-day-name">${name}</div>
+        ${
+          courses.length
+          ?courses.map(course=>`
+            <div class="schedule-course" style="background:${course.color}">
+              <button class="schedule-course-delete" onclick="deleteScheduleCourse('${scheduleEditingWeek}',${index},'${course.id}')">×</button>
+              <strong>${escapeHtml(course.title)}</strong>
+              <small>${course.time||"Toute la journée"}</small>
+            </div>
+          `).join("")
+          :`<div class="empty">Aucun cours</div>`
+        }
+      </div>
+    `;
+  }).join("");
+
+  document.getElementById("scheduleCourseDay").innerHTML=scheduleDayNames
+    .map((name,index)=>`<option value="${index}">${name}</option>`)
+    .join("");
+
+  document.getElementById("scheduleRefMondayLabel").textContent=
+    monday.toLocaleDateString("fr-FR",{day:"numeric",month:"long"});
+
+  document.getElementById("scheduleRefType").value=getWeekType(monday);
+
+  const banner=document.getElementById("scheduleBanner");
+
+  if(!data.scheduleReference){
+    banner.textContent=
+      "Commence par renseigner les cours de la semaine A et de la semaine B ci-dessous, "+
+      "puis indique en bas si la semaine affichée est la semaine A ou B. "+
+      "L'application alternera ensuite automatiquement chaque semaine.";
+  }else{
+    banner.textContent=
+      "Emplois du temps configurés : l'application affiche automatiquement la bonne semaine (A ou B) selon la date.";
+  }
+}
+
+document.getElementById("scheduleTabA").addEventListener("click",()=>{
+  scheduleEditingWeek="A";
+  renderScheduleConfig();
+});
+
+document.getElementById("scheduleTabB").addEventListener("click",()=>{
+  scheduleEditingWeek="B";
+  renderScheduleConfig();
+});
+
+document.getElementById("scheduleAddCourseButton").addEventListener("click",()=>{
+  const title=document.getElementById("scheduleCourseTitle").value.trim();
+  const dayIndex=Number(document.getElementById("scheduleCourseDay").value);
+
+  if(!title){
+    alert("Le nom du cours est obligatoire.");
+    return;
+  }
+
+  data.scheduleTemplates[scheduleEditingWeek][dayIndex].push({
+    id:createId(),
+    title,
+    time:document.getElementById("scheduleCourseTime").value,
+    color:document.getElementById("scheduleCourseColor").value
+  });
+
+  document.getElementById("scheduleCourseTitle").value="";
+  document.getElementById("scheduleCourseTime").value="";
+  save();
+});
+
+function deleteScheduleCourse(weekType,dayIndex,id){
+  data.scheduleTemplates[weekType][dayIndex]=
+    data.scheduleTemplates[weekType][dayIndex].filter(course=>course.id!==id);
+  save();
+}
+
+document.getElementById("scheduleRefValidate").addEventListener("click",()=>{
+  const monday=getMonday(weekOffset);
+
+  data.scheduleReference={
+    mondayKey:dateKey(monday),
+    type:document.getElementById("scheduleRefType").value
+  };
+
+  save();
+});
+
 function renderAgenda(){
   const monday=getMonday(weekOffset);
+  const weekType=getWeekType(monday);
   const days=[];
   const names=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
 
@@ -2094,10 +2328,14 @@ function renderAgenda(){
     year:"numeric"
   });
 
-  document.getElementById("weekTitle").textContent=`${first} — ${last}`;
+  document.getElementById("weekTitle").textContent=
+    `${first} — ${last} · Semaine ${weekType}`;
 
   document.getElementById("weekGrid").innerHTML=days.map((day,index)=>{
     const key=dateKey(day);
+    const courses=[...data.scheduleTemplates[weekType][index]]
+      .sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+
     const events=data.events
       .filter(event=>event.date===key)
       .sort((a,b)=>(a.time||"").localeCompare(b.time||""));
@@ -2106,6 +2344,16 @@ function renderAgenda(){
       <div class="day-column">
         <div class="day-name">${names[index]}</div>
         <div class="day-date">${day.getDate()}</div>
+        ${
+          courses.map(course=>`
+            <div class="event" style="background:${course.color}">
+              <button class="event-delete" onclick="deleteScheduleCourse('${weekType}',${index},'${course.id}')">×</button>
+              <strong>${escapeHtml(course.title)}</strong>
+              <small>${course.time||"Toute la journée"}</small>
+              <small>Cours (semaine ${weekType})</small>
+            </div>
+          `).join("")
+        }
         ${
           events.length
           ?events.map(event=>`
@@ -2116,7 +2364,12 @@ function renderAgenda(){
               <small>${escapeHtml(event.type)}</small>
             </div>
           `).join("")
-          :`<div class="empty">Aucun</div>`
+          :""
+        }
+        ${
+          !courses.length&&!events.length
+          ?`<div class="empty">Aucun</div>`
+          :""
         }
       </div>
     `;
@@ -2125,6 +2378,9 @@ function renderAgenda(){
   document.getElementById("mobileAgenda").innerHTML=days.map((day,index)=>{
     const key=dateKey(day);
     const today=key===dateKey(new Date());
+
+    const courses=[...data.scheduleTemplates[weekType][index]]
+      .sort((a,b)=>(a.time||"").localeCompare(b.time||""));
 
     const events=data.events
       .filter(event=>event.date===key)
@@ -2140,6 +2396,19 @@ function renderAgenda(){
         </div>
 
         ${
+          courses.map(course=>`
+            <div class="mobile-event">
+              <div class="mobile-event-time">${course.time||"—"}</div>
+              <div class="mobile-event-color" style="background:${course.color}"></div>
+              <div class="mobile-event-content">
+                <div class="mobile-event-title">${escapeHtml(course.title)}</div>
+                <div class="mobile-event-type">Cours (semaine ${weekType})</div>
+              </div>
+              <button class="mobile-event-delete" onclick="deleteScheduleCourse('${weekType}',${index},'${course.id}')">×</button>
+            </div>
+          `).join("")
+        }
+        ${
           events.length
           ?events.map(event=>`
             <div class="mobile-event">
@@ -2152,11 +2421,18 @@ function renderAgenda(){
               <button class="mobile-event-delete" onclick="deleteEvent('${event.id}')">×</button>
             </div>
           `).join("")
-          :`<div class="empty">Aucun événement</div>`
+          :""
+        }
+        ${
+          !courses.length&&!events.length
+          ?`<div class="empty">Aucun événement</div>`
+          :""
         }
       </div>
     `;
   }).join("");
+
+  renderScheduleConfig();
 }
 
 document.getElementById("previousWeek").addEventListener("click",()=>{
