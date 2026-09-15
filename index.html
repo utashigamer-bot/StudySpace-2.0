@@ -461,6 +461,42 @@ input,textarea,select{
 
 .mobile-agenda{display:none}
 
+.more-menu-wrapper{position:relative}
+
+.more-menu{
+  display:none;
+  position:absolute;
+  top:calc(100% + 8px);
+  right:0;
+  min-width:210px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;
+  box-shadow:var(--shadow);
+  padding:8px;
+  z-index:500;
+}
+
+.more-menu.open{display:block}
+
+.more-menu button{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  width:100%;
+  padding:10px 12px;
+  border:0;
+  background:transparent;
+  border-radius:10px;
+  text-align:left;
+  font-size:14px;
+  color:var(--text);
+  cursor:pointer;
+}
+
+.more-menu button:hover,
+.more-menu button.active{background:var(--surface2)}
+
 .schedule-config-header{
   display:flex;
   align-items:center;
@@ -556,14 +592,38 @@ input,textarea,select{
   margin-bottom:20px;
 }
 
-.task-list{display:flex;flex-direction:column;gap:9px}
+.task-filters{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:16px;
+}
+
+.task-filter-button{
+  padding:7px 14px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:var(--surface2);
+  color:var(--text);
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.task-filter-button.active{
+  color:#fff;
+  border-color:transparent;
+}
+
+.task-list{display:flex;flex-direction:column;gap:11px}
 
 .task{
   display:flex;
   align-items:flex-start;
   gap:12px;
-  padding:14px;
+  padding:15px 16px;
   border:1px solid var(--border);
+  border-left:5px solid var(--border);
   border-radius:12px;
   background:var(--surface);
 }
@@ -572,8 +632,8 @@ input,textarea,select{
 .task.done .task-name{text-decoration:line-through}
 
 .task-check{
-  width:22px;
-  height:22px;
+  width:24px;
+  height:24px;
   display:grid;
   place-items:center;
   flex-shrink:0;
@@ -602,29 +662,46 @@ input,textarea,select{
   gap:10px;
 }
 
+.task-name{font-size:15.5px;font-weight:800}
+
 .task-chevron{
   flex-shrink:0;
   color:var(--muted);
-  font-size:10px;
+  font-size:11px;
 }
 
 .task-badges{
   display:flex;
   flex-wrap:wrap;
-  gap:6px;
-  margin-top:7px;
+  align-items:center;
+  gap:7px;
+  margin-top:8px;
 }
 
 .task-badge{
-  padding:2px 9px;
+  padding:3px 10px;
   border-radius:999px;
   color:#fff;
-  font-size:10px;
+  font-size:11px;
   font-weight:800;
   letter-spacing:.3px;
 }
 
+.task-type-badge{
+  padding:4px 11px;
+  border-radius:999px;
+  color:#fff;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.2px;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+}
+
 .task-badge-urgent{background:var(--danger)}
+
+.task-meta{margin-top:7px;color:var(--muted);font-size:13px}
 
 .task-description{
   margin-top:10px;
@@ -1598,6 +1675,17 @@ input,textarea,select{
   <div class="top-actions">
     <button class="icon-button" id="themeButton">☾</button>
     <button class="icon-button" id="quickAddButton">+</button>
+
+    <div class="more-menu-wrapper">
+      <button class="icon-button" id="moreMenuButton" title="Plus">⋯</button>
+
+      <div class="more-menu" id="moreMenu">
+        <button data-page="quicknotes"><span>📝</span> Notes rapides</button>
+        <button data-page="objectives"><span>🎯</span> Objectifs</button>
+        <button data-page="tools"><span>🧰</span> Outils étudiants</button>
+        <button data-page="settings"><span>⚙</span> Paramètres</button>
+      </div>
+    </div>
   </div>
 </header>
 
@@ -1809,11 +1897,22 @@ input,textarea,select{
   <div class="tasks-layout">
     <div class="card card-padding">
       <div class="section-title">Tous les devoirs</div>
+
+      <div class="task-filters" id="taskFilters"></div>
+
       <div class="task-list" id="taskList"></div>
     </div>
 
     <div class="card card-padding">
       <div class="section-title">Ajouter un devoir</div>
+
+      <label class="label">Type</label>
+      <select class="select" id="taskType">
+        <option>Devoir</option>
+        <option>Contrôle</option>
+      </select>
+
+      <br><br>
 
       <label class="label">Nom du devoir</label>
       <input class="input" id="taskName" placeholder="Ex : Exercices de révision">
@@ -2143,6 +2242,7 @@ let weekOffset=0;
 let scheduleEditingWeek="A";
 let scheduleEditorOpen=false;
 let expandedTaskId=null;
+let taskFilterType="all";
 
 function save(){
   Store.set("studyspaceData",data);
@@ -2166,6 +2266,26 @@ function navigate(page){
 
 document.querySelectorAll("[data-page]").forEach(button=>{
   button.addEventListener("click",()=>navigate(button.dataset.page));
+});
+
+const moreMenuButton=document.getElementById("moreMenuButton");
+const moreMenu=document.getElementById("moreMenu");
+
+moreMenuButton.addEventListener("click",event=>{
+  event.stopPropagation();
+  moreMenu.classList.toggle("open");
+});
+
+moreMenu.addEventListener("click",event=>{
+  if(event.target.closest("button")){
+    moreMenu.classList.remove("open");
+  }
+});
+
+document.addEventListener("click",event=>{
+  if(!moreMenu.contains(event.target)&&event.target!==moreMenuButton){
+    moreMenu.classList.remove("open");
+  }
 });
 
 document.documentElement.dataset.theme=
@@ -2617,6 +2737,15 @@ function deleteEvent(id){
   save();
 }
 
+const taskTypeStyles={
+  "Devoir":{color:"var(--primary)",icon:"📘"},
+  "Contrôle":{color:"var(--danger)",icon:"📕"}
+};
+
+function getTaskType(task){
+  return taskTypeStyles[task.type]?task.type:"Devoir";
+}
+
 function renderTasks(){
   const list=document.getElementById("taskList");
 
@@ -2630,12 +2759,33 @@ function renderTasks(){
 
   subjectSelect.value=currentSubjectValue;
 
-  const tasks=[...data.tasks].sort((a,b)=>
-    Number(a.done)-Number(b.done)||(a.date||"").localeCompare(b.date||"")
-  );
+  const counts={all:data.tasks.length,Devoir:0,"Contrôle":0};
+  data.tasks.forEach(task=>{counts[getTaskType(task)]++;});
+
+  const filters=[
+    {key:"all",label:"Tous",count:counts.all,color:"var(--text)"},
+    {key:"Devoir",label:"Devoirs",count:counts.Devoir,color:taskTypeStyles.Devoir.color},
+    {key:"Contrôle",label:"Contrôles",count:counts["Contrôle"],color:taskTypeStyles["Contrôle"].color}
+  ];
+
+  document.getElementById("taskFilters").innerHTML=filters.map(filter=>`
+    <button
+      class="task-filter-button ${taskFilterType===filter.key?"active":""}"
+      style="${taskFilterType===filter.key?`background:${filter.color}`:""}"
+      onclick="setTaskFilter('${filter.key}')"
+    >
+      ${filter.label} (${filter.count})
+    </button>
+  `).join("");
+
+  const tasks=[...data.tasks]
+    .filter(task=>taskFilterType==="all"||getTaskType(task)===taskFilterType)
+    .sort((a,b)=>
+      Number(a.done)-Number(b.done)||(a.date||"").localeCompare(b.date||"")
+    );
 
   if(!tasks.length){
-    list.innerHTML=`<div class="empty">Aucun devoir enregistré.</div>`;
+    list.innerHTML=`<div class="empty">Aucun devoir dans cette catégorie.</div>`;
     return;
   }
 
@@ -2643,9 +2793,11 @@ function renderTasks(){
     const subject=data.subjects.find(item=>item.id===task.subjectId);
     const expanded=expandedTaskId===task.id;
     const description=(task.description||"").trim();
+    const type=getTaskType(task);
+    const typeStyle=taskTypeStyles[type];
 
     return`
-      <div class="task ${task.done?"done":""}">
+      <div class="task ${task.done?"done":""}" style="border-left-color:${typeStyle.color}">
         <div class="task-check" onclick="toggleTask('${task.id}')">${task.done?"✓":""}</div>
         <div class="task-main" onclick="toggleTaskDetails('${task.id}')">
           <div class="task-top">
@@ -2653,6 +2805,9 @@ function renderTasks(){
             <span class="task-chevron">${expanded?"▲":"▼"}</span>
           </div>
           <div class="task-badges">
+            <span class="task-type-badge" style="background:${typeStyle.color}">
+              ${typeStyle.icon} ${type}
+            </span>
             ${
               subject
               ?`<span class="task-badge" style="background:${subject.color}">${escapeHtml(subject.name)}</span>`
@@ -2681,6 +2836,11 @@ function renderTasks(){
   }).join("");
 }
 
+function setTaskFilter(type){
+  taskFilterType=type;
+  renderTasks();
+}
+
 function toggleTaskDetails(id){
   expandedTaskId=expandedTaskId===id?null:id;
   renderTasks();
@@ -2697,6 +2857,7 @@ document.getElementById("addTaskButton").addEventListener("click",()=>{
   data.tasks.push({
     id:createId(),
     name,
+    type:document.getElementById("taskType").value,
     subjectId:document.getElementById("taskSubject").value||null,
     description:document.getElementById("taskDescription").value.trim(),
     date:document.getElementById("taskDate").value,
@@ -3050,13 +3211,18 @@ function renderDashboard(){
   document.getElementById("dashboardUrgentTasks").innerHTML=
     urgent.slice(0,5).map(task=>{
       const subject=data.subjects.find(item=>item.id===task.subjectId);
+      const type=getTaskType(task);
+      const typeStyle=taskTypeStyles[type];
 
       return`
-        <div class="task">
+        <div class="task" style="border-left-color:${typeStyle.color}">
           <div class="task-check" onclick="toggleTask('${task.id}')"></div>
           <div class="task-info">
             <div class="task-name">${escapeHtml(task.name)}</div>
             <div class="task-badges">
+              <span class="task-type-badge" style="background:${typeStyle.color}">
+                ${typeStyle.icon} ${type}
+              </span>
               ${
                 subject
                 ?`<span class="task-badge" style="background:${subject.color}">${escapeHtml(subject.name)}</span>`
@@ -3073,13 +3239,18 @@ function renderDashboard(){
     unfinished.length
     ?unfinished.slice(0,5).map(task=>{
       const subject=data.subjects.find(item=>item.id===task.subjectId);
+      const type=getTaskType(task);
+      const typeStyle=taskTypeStyles[type];
 
       return`
-        <div class="task">
+        <div class="task" style="border-left-color:${typeStyle.color}">
           <div class="task-check" onclick="toggleTask('${task.id}')"></div>
           <div class="task-info">
             <div class="task-name">${escapeHtml(task.name)}</div>
             <div class="task-badges">
+              <span class="task-type-badge" style="background:${typeStyle.color}">
+                ${typeStyle.icon} ${type}
+              </span>
               ${
                 subject
                 ?`<span class="task-badge" style="background:${subject.color}">${escapeHtml(subject.name)}</span>`
