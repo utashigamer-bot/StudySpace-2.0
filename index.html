@@ -461,41 +461,7 @@ input,textarea,select{
 
 .mobile-agenda{display:none}
 
-.more-menu-wrapper{position:relative}
-
-.more-menu{
-  display:none;
-  position:absolute;
-  top:calc(100% + 8px);
-  right:0;
-  min-width:210px;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:14px;
-  box-shadow:var(--shadow);
-  padding:8px;
-  z-index:500;
-}
-
-.more-menu.open{display:block}
-
-.more-menu button{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  width:100%;
-  padding:10px 12px;
-  border:0;
-  background:transparent;
-  border-radius:10px;
-  text-align:left;
-  font-size:14px;
-  color:var(--text);
-  cursor:pointer;
-}
-
-.more-menu button:hover,
-.more-menu button.active{background:var(--surface2)}
+.settings-tab-panel{display:block}
 
 .schedule-config-header{
   display:flex;
@@ -720,6 +686,35 @@ input,textarea,select{
 .urgent-card{
   border:1px solid color-mix(in srgb,var(--danger) 40%,var(--border));
 }
+
+.periodic-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(64px,1fr));
+  gap:8px;
+}
+
+.periodic-element{
+  padding:8px 4px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:var(--surface2);
+  text-align:center;
+}
+
+.periodic-number{font-size:10px;color:var(--muted)}
+.periodic-symbol{font-size:18px;font-weight:800;color:var(--primary)}
+.periodic-name{font-size:10px;color:var(--muted);margin-top:2px}
+
+.grammar-rule{
+  padding:12px;
+  margin-bottom:8px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:var(--surface2);
+}
+
+.grammar-rule strong{display:block;margin-bottom:4px}
+.grammar-rule span{color:var(--muted);font-size:13px}
 
 .quick-notes{
   display:grid;
@@ -961,34 +956,90 @@ input,textarea,select{
 
     overflow:visible;
 
-    border:1px solid rgba(255,255,255,.46);
+    border:1px solid rgba(255,255,255,.32);
     border-radius:27px;
 
     background:
       radial-gradient(
         circle at var(--glass-x,50%) var(--glass-y,0%),
-        rgba(255,255,255,.34),
+        rgba(255,255,255,.18),
         transparent 32%
       ),
       linear-gradient(
         125deg,
-        rgba(255,255,255,.53),
-        rgba(255,255,255,.23) 42%,
-        rgba(255,255,255,.09)
+        rgba(255,255,255,.22),
+        rgba(255,255,255,.10) 42%,
+        rgba(255,255,255,.04)
       );
 
     box-shadow:
-      0 22px 48px rgba(31,42,78,.27),
-      0 5px 15px rgba(31,42,78,.12),
-      inset 0 1px 0 rgba(255,255,255,.86),
-      inset 0 -1px 0 rgba(0,0,0,.10);
+      0 18px 40px rgba(31,42,78,.16),
+      0 4px 12px rgba(31,42,78,.08),
+      inset 0 1px 0 rgba(255,255,255,.55),
+      inset 0 -1px 0 rgba(0,0,0,.06);
 
-    backdrop-filter:blur(34px) saturate(200%) contrast(110%);
-    -webkit-backdrop-filter:blur(34px) saturate(200%) contrast(110%);
+    backdrop-filter:blur(22px) saturate(180%) contrast(105%);
+    -webkit-backdrop-filter:blur(22px) saturate(180%) contrast(105%);
 
     isolation:isolate;
-    transition:background .25s ease,box-shadow .25s ease;
+    transition:
+      background .25s ease,
+      box-shadow .25s ease,
+      transform .45s cubic-bezier(.4,0,.2,1),
+      opacity .45s ease;
   }
+
+  .mobile-menu.hidden{
+    transform:translateY(140%);
+    opacity:0;
+    pointer-events:none;
+  }
+
+  .menu-handle{
+    position:fixed;
+    left:50%;
+    bottom:calc(10px + env(safe-area-inset-bottom));
+    z-index:51;
+
+    width:52px;
+    height:6px;
+    border-radius:20px;
+
+    background:rgba(120,130,160,.55);
+    box-shadow:0 2px 10px rgba(0,0,0,.18);
+
+    opacity:0;
+    transform:translateX(-50%) translateY(20px);
+    pointer-events:none;
+    transition:opacity .3s ease,transform .3s ease;
+  }
+
+  .menu-handle.visible{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+    pointer-events:auto;
+  }
+
+  [data-theme="dark"] .menu-handle{
+    background:rgba(200,205,225,.35);
+  }
+
+  .menu-indicator{
+    position:absolute;
+    top:7px;
+    bottom:7px;
+    left:0;
+    z-index:1;
+
+    border-radius:20px;
+    background:var(--primary);
+    opacity:.14;
+
+    transition:transform .4s cubic-bezier(.65,0,.35,1),width .4s cubic-bezier(.65,0,.35,1);
+    pointer-events:none;
+  }
+
+  [data-theme="dark"] .menu-indicator{opacity:.22}
 
   .mobile-menu::before{
     position:absolute;
@@ -1029,26 +1080,26 @@ input,textarea,select{
   }
 
   [data-theme="dark"] .mobile-menu{
-    border-color:rgba(255,255,255,.20);
+    border-color:rgba(255,255,255,.14);
     background:
       radial-gradient(
         circle at var(--glass-x,50%) var(--glass-y,0%),
-        rgba(150,165,255,.20),
+        rgba(150,165,255,.12),
         transparent 34%
       ),
       linear-gradient(
         125deg,
-        rgba(76,88,132,.78),
-        rgba(35,43,70,.84) 45%,
-        rgba(17,22,39,.90)
+        rgba(76,88,132,.42),
+        rgba(35,43,70,.48) 45%,
+        rgba(17,22,39,.55)
       );
     box-shadow:
-      0 22px 48px rgba(0,0,0,.46),
-      0 5px 15px rgba(0,0,0,.25),
-      inset 0 1px 0 rgba(255,255,255,.28),
-      inset 0 -1px 0 rgba(0,0,0,.30);
-    backdrop-filter:blur(36px) saturate(185%) contrast(114%);
-    -webkit-backdrop-filter:blur(36px) saturate(185%) contrast(114%);
+      0 18px 40px rgba(0,0,0,.30),
+      0 4px 12px rgba(0,0,0,.16),
+      inset 0 1px 0 rgba(255,255,255,.16),
+      inset 0 -1px 0 rgba(0,0,0,.20);
+    backdrop-filter:blur(24px) saturate(170%) contrast(108%);
+    -webkit-backdrop-filter:blur(24px) saturate(170%) contrast(108%);
   }
 
   [data-theme="dark"] .mobile-menu::after{
@@ -1116,39 +1167,22 @@ input,textarea,select{
 
   .mobile-menu button.active{
     color:var(--primary);
-    background:linear-gradient(
-      145deg,
-      rgba(255,255,255,.48),
-      rgba(255,255,255,.16)
-    );
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.76),
-      inset 0 -1px 0 rgba(0,0,0,.08),
-      0 4px 14px rgba(30,42,80,.15);
+    background:transparent;
+    box-shadow:none;
   }
 
   [data-theme="dark"] .mobile-menu button.active{
-    background:linear-gradient(
-      145deg,
-      rgba(255,255,255,.22),
-      rgba(255,255,255,.07)
-    );
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.26),
-      inset 0 -1px 0 rgba(0,0,0,.22),
-      0 4px 14px rgba(0,0,0,.22);
+    background:transparent;
+    box-shadow:none;
   }
 
-  .mobile-menu button.active::before{opacity:1}
-  .mobile-menu button.active::after{
-    opacity:1;
-    transform:scaleX(1);
-  }
+  .mobile-menu button.active::before{opacity:0}
+  .mobile-menu button.active::after{opacity:0}
 
   .mobile-menu button.active span{
-    transform:translateY(-1px) scale(1.1);
+    transform:translateY(-1px) scale(1.08);
     filter:drop-shadow(
-      0 0 8px color-mix(in srgb,var(--primary) 65%,transparent)
+      0 0 8px color-mix(in srgb,var(--primary) 55%,transparent)
     );
   }
 
@@ -1638,28 +1672,28 @@ input,textarea,select{
       <span class="nav-icon">✓</span> Devoirs
     </button>
 
-    <button class="nav-button" data-page="quicknotes">
+    <button class="nav-button" data-page="settings" onclick="setSettingsTab('quicknotes')">
       <span class="nav-icon">▤</span> Notes rapides
     </button>
 
     <div class="nav-title">Productivité</div>
 
-    <button class="nav-button" data-page="pomodoro">
+    <button class="nav-button" data-page="settings" onclick="setSettingsTab('pomodoro')">
       <span class="nav-icon">◷</span> Pomodoro
     </button>
 
-    <button class="nav-button" data-page="objectives">
+    <button class="nav-button" data-page="settings" onclick="setSettingsTab('objectives')">
       <span class="nav-icon">◎</span> Objectifs
     </button>
 
-    <button class="nav-button" data-page="tools">
-      <span class="nav-icon">⚙</span> Outils
+    <button class="nav-button" data-page="settings" onclick="setSettingsTab('tools')">
+      <span class="nav-icon">🧰</span> Outils
     </button>
   </nav>
 
   <div class="sidebar-bottom">
     <button class="nav-button" data-page="settings">
-      <span class="nav-icon">⚙</span> Paramètres
+      <span class="nav-icon">⚙</span> Réglages
     </button>
   </div>
 </aside>
@@ -1675,17 +1709,6 @@ input,textarea,select{
   <div class="top-actions">
     <button class="icon-button" id="themeButton">☾</button>
     <button class="icon-button" id="quickAddButton">+</button>
-
-    <div class="more-menu-wrapper">
-      <button class="icon-button" id="moreMenuButton" title="Plus">⋯</button>
-
-      <div class="more-menu" id="moreMenu">
-        <button data-page="quicknotes"><span>📝</span> Notes rapides</button>
-        <button data-page="objectives"><span>🎯</span> Objectifs</button>
-        <button data-page="tools"><span>🧰</span> Outils étudiants</button>
-        <button data-page="settings"><span>⚙</span> Paramètres</button>
-      </div>
-    </div>
   </div>
 </header>
 
@@ -1953,180 +1976,395 @@ input,textarea,select{
 </section>
 
 
-<section class="page" id="page-quicknotes">
-  <div class="page-header">
-    <div>
-      <h1 class="page-title">Notes rapides</h1>
-      <div class="page-subtitle">Pour tes idées et rappels.</div>
-    </div>
-
-    <button class="button button-primary" id="addQuickNoteButton">+ Nouvelle note</button>
-  </div>
-
-  <div class="quick-notes" id="quickNotes"></div>
-</section>
-
-<section class="page" id="page-pomodoro">
-  <div class="page-header">
-    <div>
-      <h1 class="page-title">Pomodoro</h1>
-      <div class="page-subtitle">Travaille par sessions concentrées.</div>
-    </div>
-  </div>
-
-  <div class="card card-padding pomodoro">
-    <div class="actions" style="justify-content:center">
-      <button class="button button-primary" data-mode="work">Travail · 25 min</button>
-      <button class="button button-secondary" data-mode="short">Pause · 5 min</button>
-      <button class="button button-secondary" data-mode="long">Pause longue · 15 min</button>
-    </div>
-
-    <div class="timer-ring">
-      <div class="timer-inner">
-        <div class="timer" id="timer">25:00</div>
-      </div>
-    </div>
-
-    <input class="input" id="pomodoroTask" placeholder="Sur quoi travailles-tu ?">
-
-    <br><br>
-
-    <div class="actions" style="justify-content:center">
-      <button class="button button-secondary" id="resetTimer">Réinitialiser</button>
-      <button class="button button-primary" id="startTimer">Démarrer</button>
-    </div>
-
-    <p class="notes-meta" id="pomodoroStats">Sessions terminées : 0</p>
-  </div>
-</section>
-
-<section class="page" id="page-objectives">
-  <div class="page-header">
-    <div>
-      <h1 class="page-title">Objectifs</h1>
-      <div class="page-subtitle">Fixe tes objectifs et suis tes progrès.</div>
-    </div>
-  </div>
-
-  <div class="card card-padding">
-    <div class="task-form">
-      <input class="input" id="objectiveName" placeholder="Ex : Réviser les fonctions">
-
-      <select class="select" id="objectivePeriod">
-        <option>Aujourd'hui</option>
-        <option>Cette semaine</option>
-        <option>Ce mois</option>
-        <option>Cette année</option>
-      </select>
-
-      <div></div>
-
-      <button class="button button-primary" id="addObjectiveButton">Ajouter</button>
-    </div>
-
-    <div class="task-list" id="objectiveList"></div>
-  </div>
-</section>
-
-<section class="page" id="page-tools">
-  <div class="page-header">
-    <div>
-      <h1 class="page-title">Outils étudiants</h1>
-      <div class="page-subtitle">Quelques outils pratiques.</div>
-    </div>
-  </div>
-
-  <div class="settings-grid">
-    <div class="card card-padding">
-      <div class="section-title">Calculatrice</div>
-      <input class="input" id="calculatorDisplay" readonly value="0">
-
-      <br><br>
-
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px">
-        <button class="button button-secondary calc">7</button>
-        <button class="button button-secondary calc">8</button>
-        <button class="button button-secondary calc">9</button>
-        <button class="button button-secondary calc">/</button>
-        <button class="button button-secondary calc">4</button>
-        <button class="button button-secondary calc">5</button>
-        <button class="button button-secondary calc">6</button>
-        <button class="button button-secondary calc">*</button>
-        <button class="button button-secondary calc">1</button>
-        <button class="button button-secondary calc">2</button>
-        <button class="button button-secondary calc">3</button>
-        <button class="button button-secondary calc">-</button>
-        <button class="button button-secondary calc">0</button>
-        <button class="button button-secondary calc">.</button>
-        <button class="button button-danger" id="clearCalc">C</button>
-        <button class="button button-primary" id="equalCalc">=</button>
-      </div>
-    </div>
-
-    <div class="card card-padding">
-      <div class="section-title">Calcul de moyenne</div>
-
-      <label class="label">Notes séparées par des virgules</label>
-      <input class="input" id="grades" placeholder="14, 12.5, 16">
-
-      <br><br>
-
-      <label class="label">Coefficients</label>
-      <input class="input" id="coefficients" placeholder="1, 1, 2">
-
-      <br><br>
-
-      <button class="button button-primary" id="calculateAverage">Calculer</button>
-      <h2 id="averageResult"></h2>
-    </div>
-  </div>
-</section>
-
 <section class="page" id="page-settings">
   <div class="page-header">
     <div>
-      <h1 class="page-title">Paramètres</h1>
-      <div class="page-subtitle">Personnalise ton espace.</div>
+      <h1 class="page-title">Réglages</h1>
+      <div class="page-subtitle">Ton espace, tes outils, tes infos.</div>
     </div>
   </div>
 
-  <div class="settings-grid">
-    <div class="card card-padding">
-      <div class="section-title">Profil</div>
+  <div class="actions" id="settingsTabs" style="margin-bottom:18px;flex-wrap:wrap">
+    <button class="button button-primary" data-settings-tab="profile">👤 Profil</button>
+    <button class="button button-secondary" data-settings-tab="tools">🧰 Outils</button>
+    <button class="button button-secondary" data-settings-tab="quicknotes">📝 Notes</button>
+    <button class="button button-secondary" data-settings-tab="objectives">🎯 Objectifs</button>
+    <button class="button button-secondary" data-settings-tab="pomodoro">◷ Focus</button>
+    <button class="button button-secondary" data-settings-tab="about">ℹ️ À propos</button>
+  </div>
 
-      <label class="label">Ton prénom</label>
-      <input class="input" id="profileName" placeholder="Ex : Léo-Paul">
+  <div class="settings-tab-panel" data-settings-tab-panel="profile">
+    <div class="settings-grid">
+      <div class="card card-padding">
+        <div class="section-title">Profil</div>
 
-      <br><br>
+        <label class="label">Ton prénom</label>
+        <input class="input" id="profileName" placeholder="Ex : Léo-Paul">
 
-      <label class="label">Ta classe</label>
-      <input class="input" id="profileClass" placeholder="Ex : Seconde">
+        <br><br>
 
-      <br><br>
+        <label class="label">Ta classe</label>
+        <input class="input" id="profileClass" placeholder="Ex : Seconde">
 
-      <button class="button button-primary" id="saveProfile">Enregistrer le profil</button>
+        <br><br>
 
-      <div class="version-card">
-        <span>Version de StudySpace</span>
-        <strong>V2.3</strong>
+        <button class="button button-primary" id="saveProfile">Enregistrer le profil</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-tab-panel" data-settings-tab-panel="tools" style="display:none">
+    <div class="actions" id="toolsCategoryTabs" style="margin-bottom:18px">
+      <button class="button button-primary" data-tools-category="maths">📐 Maths</button>
+      <button class="button button-secondary" data-tools-category="sciences">⚗️ Sciences</button>
+      <button class="button button-secondary" data-tools-category="francais">📖 Français</button>
+      <button class="button button-secondary" data-tools-category="pratique">🛠️ Pratique</button>
+    </div>
+
+    <div class="settings-grid tools-category" data-tools-category-panel="maths">
+      <div class="card card-padding">
+        <div class="section-title">Calculatrice scientifique</div>
+        <input class="input" id="calculatorDisplay" readonly value="0">
+
+        <br><br>
+
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+          <button class="button button-secondary calc-fn" data-token="sin(">sin</button>
+          <button class="button button-secondary calc-fn" data-token="cos(">cos</button>
+          <button class="button button-secondary calc-fn" data-token="tan(">tan</button>
+          <button class="button button-secondary calc-fn" data-token="sqrt(">√</button>
+          <button class="button button-secondary calc-fn" data-token="log(">log</button>
+          <button class="button button-secondary calc-fn" data-token="ln(">ln</button>
+          <button class="button button-secondary calc-fn" data-token="pi">π</button>
+          <button class="button button-secondary calc-fn" data-token="**2">x²</button>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px">
+          <button class="button button-secondary calc">(</button>
+          <button class="button button-secondary calc">)</button>
+          <button class="button button-danger" id="clearCalc">C</button>
+          <button class="button button-secondary" id="backspaceCalc">⌫</button>
+
+          <button class="button button-secondary calc">7</button>
+          <button class="button button-secondary calc">8</button>
+          <button class="button button-secondary calc">9</button>
+          <button class="button button-secondary calc">/</button>
+
+          <button class="button button-secondary calc">4</button>
+          <button class="button button-secondary calc">5</button>
+          <button class="button button-secondary calc">6</button>
+          <button class="button button-secondary calc">*</button>
+
+          <button class="button button-secondary calc">1</button>
+          <button class="button button-secondary calc">2</button>
+          <button class="button button-secondary calc">3</button>
+          <button class="button button-secondary calc">-</button>
+
+          <button class="button button-secondary calc">0</button>
+          <button class="button button-secondary calc">.</button>
+          <button class="button button-primary" id="equalCalc">=</button>
+          <button class="button button-secondary calc">+</button>
+        </div>
+      </div>
+
+      <div class="card card-padding">
+        <div class="section-title">Géométrie</div>
+
+        <label class="label">Forme</label>
+        <select class="select" id="geometryShape">
+          <option value="circle">Cercle</option>
+          <option value="rectangle">Rectangle</option>
+          <option value="triangle">Triangle</option>
+          <option value="sphere">Sphère</option>
+          <option value="cylinder">Cylindre</option>
+        </select>
+
+        <br><br>
+
+        <div id="geometryInputs" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
+
+        <br>
+
+        <button class="button button-primary" id="calculateGeometryButton" style="width:100%">
+          Calculer
+        </button>
+
+        <div class="task-meta" id="geometryResult" style="margin-top:12px;font-size:14px"></div>
+      </div>
+
+      <div class="card card-padding">
+        <div class="section-title">Convertisseur binaire · hexadécimal</div>
+
+        <label class="label">Nombre décimal</label>
+        <input class="input" id="baseDecimal" type="number" placeholder="Ex : 42">
+
+        <br><br>
+
+        <button class="button button-primary" id="convertBaseButton" style="width:100%">
+          Convertir
+        </button>
+
+        <div class="task-meta" id="baseResult" style="margin-top:12px;font-size:14px"></div>
+      </div>
+
+      <div class="card card-padding">
+        <div class="section-title">Calcul de moyenne</div>
+
+        <label class="label">Notes séparées par des virgules</label>
+        <input class="input" id="grades" placeholder="14, 12.5, 16">
+
+        <br><br>
+
+        <label class="label">Coefficients</label>
+        <input class="input" id="coefficients" placeholder="1, 1, 2">
+
+        <br><br>
+
+        <button class="button button-primary" id="calculateAverage">Calculer</button>
+        <h2 id="averageResult"></h2>
       </div>
     </div>
 
-    <div class="card card-padding">
-      <div class="section-title">Données</div>
-      <p class="notes-meta">Sauvegarde ou restaure tes données.</p>
+    <div class="settings-grid tools-category" data-tools-category-panel="sciences" style="display:none">
+      <div class="card card-padding">
+        <div class="section-title">Formules essentielles</div>
 
-      <div class="actions">
-        <button class="button button-secondary" id="exportData">Exporter</button>
-        <button class="button button-secondary" id="importData">Importer</button>
-        <input type="file" id="importFile" accept=".json" hidden>
+        <div class="actions" id="formulaTabs" style="margin-bottom:12px"></div>
+
+        <div id="formulaContent"></div>
       </div>
 
-      <br>
+      <div class="card card-padding">
+        <div class="section-title">Tableau périodique rapide</div>
+        <p class="notes-meta">Les éléments les plus courants au lycée.</p>
 
-      <button class="button button-danger" id="resetData">
-        Réinitialiser toutes les données
-      </button>
+        <div id="periodicTable" class="periodic-grid"></div>
+      </div>
+    </div>
+
+    <div class="settings-grid tools-category" data-tools-category-panel="francais" style="display:none">
+      <div class="card card-padding">
+        <div class="section-title">Conjugueur</div>
+
+        <label class="label">Verbe</label>
+        <input class="input" id="conjugateVerb" placeholder="Ex : être, avoir, parler...">
+
+        <br><br>
+
+        <label class="label">Temps</label>
+        <select class="select" id="conjugateTense">
+          <option>Présent</option>
+          <option>Imparfait</option>
+          <option>Futur simple</option>
+          <option>Passé composé</option>
+          <option>Conditionnel</option>
+          <option>Subjonctif</option>
+        </select>
+
+        <br><br>
+
+        <button class="button button-primary" id="conjugateButton" style="width:100%">
+          Conjuguer
+        </button>
+
+        <div id="conjugateResult" style="margin-top:12px"></div>
+      </div>
+
+      <div class="card card-padding">
+        <div class="section-title">Plan de dissertation</div>
+
+        <label class="label">Sujet</label>
+        <input class="input" id="dissertationSubject" placeholder="Ex : Le progrès rend-il l'homme plus heureux ?">
+
+        <br><br>
+
+        <button class="button button-primary" id="generatePlanButton" style="width:100%">
+          Générer un plan
+        </button>
+
+        <div id="dissertationPlan" style="margin-top:14px"></div>
+      </div>
+
+      <div class="card card-padding">
+        <div class="section-title">Règles de grammaire</div>
+        <div id="grammarRules"></div>
+      </div>
+    </div>
+
+    <div class="settings-grid tools-category" data-tools-category-panel="pratique" style="display:none">
+      <div class="card card-padding">
+        <div class="section-title">Convertisseur</div>
+
+        <label class="label">Catégorie</label>
+        <select class="select" id="toolsConverterCategory">
+          <option value="length">📏 Longueur</option>
+          <option value="mass">⚖️ Masse</option>
+          <option value="temperature">🌡️ Température</option>
+          <option value="speed">💨 Vitesse</option>
+          <option value="area">📦 Aire</option>
+        </select>
+
+        <br><br>
+
+        <label class="label">Valeur</label>
+        <input class="input" id="toolsConverterValue" type="number" placeholder="Ex : 10">
+
+        <br><br>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div>
+            <label class="label">De</label>
+            <select class="select" id="toolsConverterFrom"></select>
+          </div>
+          <div>
+            <label class="label">Vers</label>
+            <select class="select" id="toolsConverterTo"></select>
+          </div>
+        </div>
+
+        <br>
+
+        <button class="button button-primary" id="toolsConvertButton" style="width:100%">
+          Convertir
+        </button>
+
+        <h2 id="toolsConverterResult"></h2>
+      </div>
+
+      <div class="card card-padding">
+        <div class="section-title">Dé &amp; Pile ou face</div>
+
+        <div class="actions">
+          <button class="button button-secondary" id="toolsCoinFlipButton">🪙 Pile ou face</button>
+          <button class="button button-secondary" id="toolsDiceRollButton">🎲 Lancer le dé</button>
+        </div>
+
+        <h2 id="toolsRandomResult" style="margin-top:14px"></h2>
+      </div>
+
+      <div class="card card-padding">
+        <div class="section-title">Groupes aléatoires</div>
+
+        <label class="label">Noms (séparés par une virgule)</label>
+        <textarea
+          class="textarea textarea-compact"
+          id="toolsGroupNames"
+          placeholder="Ex : Léa, Tom, Sacha, Nina, Rayan..."
+        ></textarea>
+
+        <br><br>
+
+        <label class="label">Nombre de groupes</label>
+        <input class="input" id="toolsGroupCount" type="number" min="2" value="2">
+
+        <br><br>
+
+        <button class="button button-primary" id="toolsGenerateGroupsButton" style="width:100%">
+          Créer les groupes
+        </button>
+
+        <div id="toolsGroupsResult" style="margin-top:14px"></div>
+      </div>
+
+      <div class="card card-padding">
+        <div class="section-title">Checklist examen</div>
+        <div class="task-list" id="examChecklist"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-tab-panel" data-settings-tab-panel="quicknotes" style="display:none">
+    <div class="page-header">
+      <div>
+        <div class="page-subtitle">Pour tes idées et rappels.</div>
+      </div>
+
+      <button class="button button-primary" id="addQuickNoteButton">+ Nouvelle note</button>
+    </div>
+
+    <div class="quick-notes" id="quickNotes"></div>
+  </div>
+
+  <div class="settings-tab-panel" data-settings-tab-panel="objectives" style="display:none">
+    <div class="card card-padding">
+      <div class="task-form">
+        <input class="input" id="objectiveName" placeholder="Ex : Réviser les fonctions">
+
+        <select class="select" id="objectivePeriod">
+          <option>Aujourd'hui</option>
+          <option>Cette semaine</option>
+          <option>Ce mois</option>
+          <option>Cette année</option>
+        </select>
+
+        <div></div>
+
+        <button class="button button-primary" id="addObjectiveButton">Ajouter</button>
+      </div>
+
+      <div class="task-list" id="objectiveList"></div>
+    </div>
+  </div>
+
+  <div class="settings-tab-panel" data-settings-tab-panel="pomodoro" style="display:none">
+    <div class="card card-padding pomodoro">
+      <div class="actions" style="justify-content:center">
+        <button class="button button-primary" data-mode="work">Travail · 25 min</button>
+        <button class="button button-secondary" data-mode="short">Pause · 5 min</button>
+        <button class="button button-secondary" data-mode="long">Pause longue · 15 min</button>
+      </div>
+
+      <div class="timer-ring">
+        <div class="timer-inner">
+          <div class="timer" id="timer">25:00</div>
+        </div>
+      </div>
+
+      <input class="input" id="pomodoroTask" placeholder="Sur quoi travailles-tu ?">
+
+      <br><br>
+
+      <div class="actions" style="justify-content:center">
+        <button class="button button-secondary" id="resetTimer">Réinitialiser</button>
+        <button class="button button-primary" id="startTimer">Démarrer</button>
+      </div>
+
+      <p class="notes-meta" id="pomodoroStats">Sessions terminées : 0</p>
+    </div>
+  </div>
+
+  <div class="settings-tab-panel" data-settings-tab-panel="about" style="display:none">
+    <div class="settings-grid">
+      <div class="card card-padding">
+        <div class="section-title">À propos de StudySpace</div>
+
+        <div class="version-card">
+          <span>Version</span>
+          <strong id="aboutVersion">V2.3</strong>
+        </div>
+
+        <p class="notes-meta" style="margin-top:14px">
+          Créé par <strong>[Ton prénom]</strong>, pour aider les élèves de 2nde
+          à s'organiser au quotidien.
+        </p>
+      </div>
+
+      <div class="card card-padding">
+        <div class="section-title">Données</div>
+        <p class="notes-meta">Sauvegarde ou restaure tes données.</p>
+
+        <div class="actions">
+          <button class="button button-secondary" id="exportData">Exporter</button>
+          <button class="button button-secondary" id="importData">Importer</button>
+          <input type="file" id="importFile" accept=".json" hidden>
+        </div>
+
+        <br>
+
+        <button class="button button-danger" id="resetData">
+          Réinitialiser toutes les données
+        </button>
+      </div>
     </div>
   </div>
 </section>
@@ -2135,17 +2373,20 @@ input,textarea,select{
 </main>
 
 <nav class="mobile-menu">
+  <div class="menu-indicator" id="menuIndicator"></div>
   <button class="active" data-page="dashboard"><span>⌂</span>Accueil</button>
   <button data-page="courses"><span>▣</span>Cours</button>
   <button data-page="agenda"><span>□</span>Agenda</button>
   <button data-page="tasks"><span>✓</span>Devoirs</button>
-  <button data-page="pomodoro"><span>◷</span>Focus</button>
+  <button data-page="settings"><span>⚙</span>Réglages</button>
 </nav>
+
+<div class="menu-handle" id="menuHandle"></div>
 
 <script>
 "use strict";
 
-const VERSION="2.3";
+const VERSION="2.8";
 
 const Store={
   get(key,fallback){
@@ -2262,30 +2503,32 @@ function navigate(page){
 
   currentPage=page;
   window.scrollTo({top:0,behavior:"smooth"});
+  moveMenuIndicator();
 }
 
 document.querySelectorAll("[data-page]").forEach(button=>{
   button.addEventListener("click",()=>navigate(button.dataset.page));
 });
 
-const moreMenuButton=document.getElementById("moreMenuButton");
-const moreMenu=document.getElementById("moreMenu");
+function setSettingsTab(tab){
+  document.querySelectorAll("[data-settings-tab]").forEach(button=>{
+    button.className="button "+(button.dataset.settingsTab===tab?"button-primary":"button-secondary");
+  });
 
-moreMenuButton.addEventListener("click",event=>{
-  event.stopPropagation();
-  moreMenu.classList.toggle("open");
-});
+  document.querySelectorAll("[data-settings-tab-panel]").forEach(panel=>{
+    panel.style.display=panel.dataset.settingsTabPanel===tab?"":"none";
+  });
+}
 
-moreMenu.addEventListener("click",event=>{
-  if(event.target.closest("button")){
-    moreMenu.classList.remove("open");
-  }
-});
+function openSettingsTab(tab){
+  navigate("settings");
+  setSettingsTab(tab);
+}
 
-document.addEventListener("click",event=>{
-  if(!moreMenu.contains(event.target)&&event.target!==moreMenuButton){
-    moreMenu.classList.remove("open");
-  }
+document.getElementById("aboutVersion").textContent="V"+VERSION;
+
+document.querySelectorAll("[data-settings-tab]").forEach(button=>{
+  button.addEventListener("click",()=>setSettingsTab(button.dataset.settingsTab));
 });
 
 document.documentElement.dataset.theme=
@@ -2920,7 +3163,7 @@ document.getElementById("addQuickNoteButton").addEventListener("click",()=>{
   });
 
   save();
-  navigate("quicknotes");
+  openSettingsTab("quicknotes");
 });
 
 function deleteQuickNote(id){
@@ -3047,13 +3290,68 @@ document.getElementById("resetTimer").addEventListener("click",()=>{
   document.getElementById("startTimer").textContent="Démarrer";
 });
 
+/* =========================================================
+   OUTILS ÉTUDIANTS — catégories
+   ========================================================= */
+
+document.querySelectorAll("[data-tools-category]").forEach(button=>{
+  button.addEventListener("click",()=>{
+    document.querySelectorAll("[data-tools-category]").forEach(btn=>{
+      btn.className="button "+(btn===button?"button-primary":"button-secondary");
+    });
+
+    document.querySelectorAll("[data-tools-category-panel]").forEach(panel=>{
+      panel.style.display=
+        panel.dataset.toolsCategoryPanel===button.dataset.toolsCategory?"":"none";
+    });
+  });
+});
+
+/* --- Calculatrice scientifique --- */
+
 let expression="";
+
+const calculatorScope={
+  sin:x=>Math.sin(x*Math.PI/180),
+  cos:x=>Math.cos(x*Math.PI/180),
+  tan:x=>Math.tan(x*Math.PI/180),
+  sqrt:Math.sqrt,
+  log:Math.log10,
+  ln:Math.log,
+  pi:Math.PI
+};
+
+function evaluateCalculatorExpression(expr){
+  if(!/^[0-9+\-*/.() a-zA-Z]+$/.test(expr))throw new Error("invalid");
+
+  const identifiers=[...new Set(expr.match(/[a-zA-Z]+/g)||[])];
+  if(identifiers.some(id=>!(id in calculatorScope)))throw new Error("invalid");
+
+  const fn=new Function(
+    ...Object.keys(calculatorScope),
+    `"use strict";return(${expr})`
+  );
+
+  return fn(...Object.values(calculatorScope));
+}
 
 document.querySelectorAll(".calc").forEach(button=>{
   button.addEventListener("click",()=>{
     expression+=button.textContent;
     document.getElementById("calculatorDisplay").value=expression;
   });
+});
+
+document.querySelectorAll(".calc-fn").forEach(button=>{
+  button.addEventListener("click",()=>{
+    expression+=button.dataset.token;
+    document.getElementById("calculatorDisplay").value=expression;
+  });
+});
+
+document.getElementById("backspaceCalc").addEventListener("click",()=>{
+  expression=expression.slice(0,-1);
+  document.getElementById("calculatorDisplay").value=expression||"0";
 });
 
 document.getElementById("clearCalc").addEventListener("click",()=>{
@@ -3063,15 +3361,86 @@ document.getElementById("clearCalc").addEventListener("click",()=>{
 
 document.getElementById("equalCalc").addEventListener("click",()=>{
   try{
-    if(!/^[0-9+\-*/.() ]+$/.test(expression))throw new Error();
-
-    expression=String(Function(`"use strict";return(${expression})`)());
+    expression=String(evaluateCalculatorExpression(expression));
     document.getElementById("calculatorDisplay").value=expression;
   }catch{
     expression="";
     document.getElementById("calculatorDisplay").value="Erreur";
   }
 });
+
+/* --- Géométrie --- */
+
+const geometryShapes={
+  circle:{
+    inputs:[{id:"r",label:"Rayon"}],
+    compute:({r})=>({
+      "Aire":(Math.PI*r*r).toFixed(2),
+      "Périmètre":(2*Math.PI*r).toFixed(2)
+    })
+  },
+  rectangle:{
+    inputs:[{id:"l",label:"Longueur"},{id:"w",label:"Largeur"}],
+    compute:({l,w})=>({
+      "Aire":(l*w).toFixed(2),
+      "Périmètre":(2*(l+w)).toFixed(2)
+    })
+  },
+  triangle:{
+    inputs:[{id:"b",label:"Base"},{id:"h",label:"Hauteur"}],
+    compute:({b,h})=>({
+      "Aire":(b*h/2).toFixed(2)
+    })
+  },
+  sphere:{
+    inputs:[{id:"r",label:"Rayon"}],
+    compute:({r})=>({
+      "Aire":(4*Math.PI*r*r).toFixed(2),
+      "Volume":(4/3*Math.PI*Math.pow(r,3)).toFixed(2)
+    })
+  },
+  cylinder:{
+    inputs:[{id:"r",label:"Rayon"},{id:"h",label:"Hauteur"}],
+    compute:({r,h})=>({
+      "Aire":(2*Math.PI*r*(r+h)).toFixed(2),
+      "Volume":(Math.PI*r*r*h).toFixed(2)
+    })
+  }
+};
+
+function renderGeometryInputs(){
+  const shape=geometryShapes[document.getElementById("geometryShape").value];
+
+  document.getElementById("geometryInputs").innerHTML=shape.inputs.map(input=>`
+    <div>
+      <label class="label">${input.label}</label>
+      <input class="input geometry-input" data-key="${input.id}" type="number" placeholder="0">
+    </div>
+  `).join("");
+
+  document.getElementById("geometryResult").textContent="";
+}
+
+document.getElementById("geometryShape").addEventListener("change",renderGeometryInputs);
+renderGeometryInputs();
+
+document.getElementById("calculateGeometryButton").addEventListener("click",()=>{
+  const shape=geometryShapes[document.getElementById("geometryShape").value];
+  const values={};
+
+  document.querySelectorAll(".geometry-input").forEach(input=>{
+    values[input.dataset.key]=parseFloat(input.value)||0;
+  });
+
+  const results=shape.compute(values);
+
+  document.getElementById("geometryResult").innerHTML=
+    Object.entries(results)
+      .map(([label,value])=>`${label} : <strong>${value}</strong>`)
+      .join(" · ");
+});
+
+/* --- Calcul de moyenne --- */
 
 document.getElementById("calculateAverage").addEventListener("click",()=>{
   const grades=document.getElementById("grades").value.split(",").map(Number).filter(Number.isFinite);
@@ -3090,6 +3459,412 @@ document.getElementById("calculateAverage").addEventListener("click",()=>{
   document.getElementById("averageResult").textContent=
     `Moyenne : ${(total/totalCoefficients).toFixed(2)} / 20`;
 });
+
+/* --- Formules essentielles --- */
+
+const essentialFormulas={
+  Physique:[
+    {name:"Vitesse",formula:"v = d ÷ t"},
+    {name:"Poids",formula:"P = m × g (g ≈ 9,81 N/kg)"},
+    {name:"Masse volumique",formula:"ρ = m ÷ V"},
+    {name:"Loi d'Ohm",formula:"U = R × I"},
+    {name:"Puissance électrique",formula:"P = U × I"},
+    {name:"Énergie cinétique",formula:"Ec = ½ × m × v²"}
+  ],
+  Chimie:[
+    {name:"Quantité de matière",formula:"n = m ÷ M"},
+    {name:"Concentration molaire",formula:"c = n ÷ V"},
+    {name:"Masse volumique",formula:"ρ = m ÷ V"},
+    {name:"Dilution",formula:"C1 × V1 = C2 × V2"},
+    {name:"Échelle de pH",formula:"0 à 14 (7 = neutre)"}
+  ],
+  SVT:[
+    {name:"IMC",formula:"IMC = masse (kg) ÷ taille² (m)"},
+    {name:"Fréquence cardiaque max",formula:"FC max ≈ 220 − âge"},
+    {name:"Débit",formula:"Q = V ÷ t"}
+  ]
+};
+
+let activeFormulaCategory="Physique";
+
+function renderFormulas(){
+  document.getElementById("formulaTabs").innerHTML=Object.keys(essentialFormulas)
+    .map(category=>`
+      <button
+        class="button ${activeFormulaCategory===category?"button-primary":"button-secondary"}"
+        onclick="setFormulaCategory('${category}')"
+      >${category}</button>
+    `).join("");
+
+  document.getElementById("formulaContent").innerHTML=essentialFormulas[activeFormulaCategory]
+    .map(item=>`
+      <div class="grammar-rule">
+        <strong>${escapeHtml(item.name)}</strong>
+        <span>${escapeHtml(item.formula)}</span>
+      </div>
+    `).join("");
+}
+
+function setFormulaCategory(category){
+  activeFormulaCategory=category;
+  renderFormulas();
+}
+
+renderFormulas();
+
+/* --- Tableau périodique rapide --- */
+
+const commonElements=[
+  {n:1,s:"H",name:"Hydrogène"},{n:2,s:"He",name:"Hélium"},
+  {n:3,s:"Li",name:"Lithium"},{n:6,s:"C",name:"Carbone"},
+  {n:7,s:"N",name:"Azote"},{n:8,s:"O",name:"Oxygène"},
+  {n:9,s:"F",name:"Fluor"},{n:10,s:"Ne",name:"Néon"},
+  {n:11,s:"Na",name:"Sodium"},{n:12,s:"Mg",name:"Magnésium"},
+  {n:13,s:"Al",name:"Aluminium"},{n:14,s:"Si",name:"Silicium"},
+  {n:15,s:"P",name:"Phosphore"},{n:16,s:"S",name:"Soufre"},
+  {n:17,s:"Cl",name:"Chlore"},{n:18,s:"Ar",name:"Argon"},
+  {n:19,s:"K",name:"Potassium"},{n:20,s:"Ca",name:"Calcium"},
+  {n:26,s:"Fe",name:"Fer"},{n:29,s:"Cu",name:"Cuivre"},
+  {n:30,s:"Zn",name:"Zinc"},{n:47,s:"Ag",name:"Argent"},
+  {n:79,s:"Au",name:"Or"},{n:82,s:"Pb",name:"Plomb"}
+];
+
+document.getElementById("periodicTable").innerHTML=commonElements.map(element=>`
+  <div class="periodic-element">
+    <div class="periodic-number">${element.n}</div>
+    <div class="periodic-symbol">${element.s}</div>
+    <div class="periodic-name">${element.name}</div>
+  </div>
+`).join("");
+
+/* --- Conjugueur --- */
+
+const conjugations={
+  "être":{
+    "Présent":["suis","es","est","sommes","êtes","sont"],
+    "Imparfait":["étais","étais","était","étions","étiez","étaient"],
+    "Futur simple":["serai","seras","sera","serons","serez","seront"],
+    "Passé composé":["ai été","as été","a été","avons été","avez été","ont été"],
+    "Conditionnel":["serais","serais","serait","serions","seriez","seraient"],
+    "Subjonctif":["que je sois","que tu sois","qu'il soit","que nous soyons","que vous soyez","qu'ils soient"]
+  },
+  "avoir":{
+    "Présent":["ai","as","a","avons","avez","ont"],
+    "Imparfait":["avais","avais","avait","avions","aviez","avaient"],
+    "Futur simple":["aurai","auras","aura","aurons","aurez","auront"],
+    "Passé composé":["ai eu","as eu","a eu","avons eu","avez eu","ont eu"],
+    "Conditionnel":["aurais","aurais","aurait","aurions","auriez","auraient"],
+    "Subjonctif":["que j'aie","que tu aies","qu'il ait","que nous ayons","que vous ayez","qu'ils aient"]
+  },
+  "aller":{
+    "Présent":["vais","vas","va","allons","allez","vont"],
+    "Imparfait":["allais","allais","allait","allions","alliez","allaient"],
+    "Futur simple":["irai","iras","ira","irons","irez","iront"],
+    "Passé composé":["suis allé(e)","es allé(e)","est allé(e)","sommes allé(e)s","êtes allé(e)s","sont allé(e)s"],
+    "Conditionnel":["irais","irais","irait","irions","iriez","iraient"],
+    "Subjonctif":["que j'aille","que tu ailles","qu'il aille","que nous allions","que vous alliez","qu'ils aillent"]
+  },
+  "faire":{
+    "Présent":["fais","fais","fait","faisons","faites","font"],
+    "Imparfait":["faisais","faisais","faisait","faisions","faisiez","faisaient"],
+    "Futur simple":["ferai","feras","fera","ferons","ferez","feront"],
+    "Passé composé":["ai fait","as fait","a fait","avons fait","avez fait","ont fait"],
+    "Conditionnel":["ferais","ferais","ferait","ferions","feriez","feraient"],
+    "Subjonctif":["que je fasse","que tu fasses","qu'il fasse","que nous fassions","que vous fassiez","qu'ils fassent"]
+  },
+  "dire":{
+    "Présent":["dis","dis","dit","disons","dites","disent"],
+    "Imparfait":["disais","disais","disait","disions","disiez","disaient"],
+    "Futur simple":["dirai","diras","dira","dirons","direz","diront"],
+    "Passé composé":["ai dit","as dit","a dit","avons dit","avez dit","ont dit"],
+    "Conditionnel":["dirais","dirais","dirait","dirions","diriez","diraient"],
+    "Subjonctif":["que je dise","que tu dises","qu'il dise","que nous disions","que vous disiez","qu'ils disent"]
+  },
+  "pouvoir":{
+    "Présent":["peux","peux","peut","pouvons","pouvez","peuvent"],
+    "Imparfait":["pouvais","pouvais","pouvait","pouvions","pouviez","pouvaient"],
+    "Futur simple":["pourrai","pourras","pourra","pourrons","pourrez","pourront"],
+    "Passé composé":["ai pu","as pu","a pu","avons pu","avez pu","ont pu"],
+    "Conditionnel":["pourrais","pourrais","pourrait","pourrions","pourriez","pourraient"],
+    "Subjonctif":["que je puisse","que tu puisses","qu'il puisse","que nous puissions","que vous puissiez","qu'ils puissent"]
+  },
+  "vouloir":{
+    "Présent":["veux","veux","veut","voulons","voulez","veulent"],
+    "Imparfait":["voulais","voulais","voulait","voulions","vouliez","voulaient"],
+    "Futur simple":["voudrai","voudras","voudra","voudrons","voudrez","voudront"],
+    "Passé composé":["ai voulu","as voulu","a voulu","avons voulu","avez voulu","ont voulu"],
+    "Conditionnel":["voudrais","voudrais","voudrait","voudrions","voudriez","voudraient"],
+    "Subjonctif":["que je veuille","que tu veuilles","qu'il veuille","que nous voulions","que vous vouliez","qu'ils veuillent"]
+  },
+  "prendre":{
+    "Présent":["prends","prends","prend","prenons","prenez","prennent"],
+    "Imparfait":["prenais","prenais","prenait","prenions","preniez","prenaient"],
+    "Futur simple":["prendrai","prendras","prendra","prendrons","prendrez","prendront"],
+    "Passé composé":["ai pris","as pris","a pris","avons pris","avez pris","ont pris"],
+    "Conditionnel":["prendrais","prendrais","prendrait","prendrions","prendriez","prendraient"],
+    "Subjonctif":["que je prenne","que tu prennes","qu'il prenne","que nous prenions","que vous preniez","qu'ils prennent"]
+  },
+  "venir":{
+    "Présent":["viens","viens","vient","venons","venez","viennent"],
+    "Imparfait":["venais","venais","venait","venions","veniez","venaient"],
+    "Futur simple":["viendrai","viendras","viendra","viendrons","viendrez","viendront"],
+    "Passé composé":["suis venu(e)","es venu(e)","est venu(e)","sommes venu(e)s","êtes venu(e)s","sont venu(e)s"],
+    "Conditionnel":["viendrais","viendrais","viendrait","viendrions","viendriez","viendraient"],
+    "Subjonctif":["que je vienne","que tu viennes","qu'il vienne","que nous venions","que vous veniez","qu'ils viennent"]
+  },
+  "parler":{
+    "Présent":["parle","parles","parle","parlons","parlez","parlent"],
+    "Imparfait":["parlais","parlais","parlait","parlions","parliez","parlaient"],
+    "Futur simple":["parlerai","parleras","parlera","parlerons","parlerez","parleront"],
+    "Passé composé":["ai parlé","as parlé","a parlé","avons parlé","avez parlé","ont parlé"],
+    "Conditionnel":["parlerais","parlerais","parlerait","parlerions","parleriez","parleraient"],
+    "Subjonctif":["que je parle","que tu parles","qu'il parle","que nous parlions","que vous parliez","qu'ils parlent"]
+  },
+  "finir":{
+    "Présent":["finis","finis","finit","finissons","finissez","finissent"],
+    "Imparfait":["finissais","finissais","finissait","finissions","finissiez","finissaient"],
+    "Futur simple":["finirai","finiras","finira","finirons","finirez","finiront"],
+    "Passé composé":["ai fini","as fini","a fini","avons fini","avez fini","ont fini"],
+    "Conditionnel":["finirais","finirais","finirait","finirions","finiriez","finiraient"],
+    "Subjonctif":["que je finisse","que tu finisses","qu'il finisse","que nous finissions","que vous finissiez","qu'ils finissent"]
+  },
+  "vendre":{
+    "Présent":["vends","vends","vend","vendons","vendez","vendent"],
+    "Imparfait":["vendais","vendais","vendait","vendions","vendiez","vendaient"],
+    "Futur simple":["vendrai","vendras","vendra","vendrons","vendrez","vendront"],
+    "Passé composé":["ai vendu","as vendu","a vendu","avons vendu","avez vendu","ont vendu"],
+    "Conditionnel":["vendrais","vendrais","vendrait","vendrions","vendriez","vendraient"],
+    "Subjonctif":["que je vende","que tu vendes","qu'il vende","que nous vendions","que vous vendiez","qu'ils vendent"]
+  }
+};
+
+const pronouns=["Je","Tu","Il/Elle","Nous","Vous","Ils/Elles"];
+
+document.getElementById("conjugateButton").addEventListener("click",()=>{
+  const verb=document.getElementById("conjugateVerb").value.trim().toLowerCase();
+  const tense=document.getElementById("conjugateTense").value;
+  const result=document.getElementById("conjugateResult");
+
+  if(!conjugations[verb]){
+    result.innerHTML=`
+      <div class="empty">
+        Verbe non reconnu. Essaie : ${Object.keys(conjugations).join(", ")}.
+      </div>
+    `;
+    return;
+  }
+
+  const forms=conjugations[verb][tense];
+
+  result.innerHTML=`
+    <div class="grammar-rule">
+      <strong>${escapeHtml(verb)} — ${escapeHtml(tense)}</strong>
+      <span>
+        ${pronouns.map((pronoun,index)=>`${pronoun} ${forms[index]}`).join("<br>")}
+      </span>
+    </div>
+  `;
+});
+
+/* --- Plan de dissertation --- */
+
+document.getElementById("generatePlanButton").addEventListener("click",()=>{
+  const subject=document.getElementById("dissertationSubject").value.trim()||"ton sujet";
+
+  document.getElementById("dissertationPlan").innerHTML=`
+    <div class="grammar-rule">
+      <strong>Introduction</strong>
+      <span>
+        Accroche + présentation du sujet « ${escapeHtml(subject)} »
+        + annonce du plan.
+      </span>
+    </div>
+    <div class="grammar-rule">
+      <strong>I. Thèse</strong>
+      <span>Présente un premier point de vue, avec des arguments et des exemples.</span>
+    </div>
+    <div class="grammar-rule">
+      <strong>II. Antithèse</strong>
+      <span>Présente le point de vue opposé ou nuancé, avec arguments et exemples.</span>
+    </div>
+    <div class="grammar-rule">
+      <strong>III. Synthèse</strong>
+      <span>Dépasse l'opposition, propose ta propre réflexion nuancée.</span>
+    </div>
+    <div class="grammar-rule">
+      <strong>Conclusion</strong>
+      <span>Résume la réflexion + réponds clairement à la question posée + ouverture.</span>
+    </div>
+  `;
+});
+
+/* --- Règles de grammaire --- */
+
+const grammarRulesList=[
+  {title:"Accord du participe passé avec avoir",text:"Le participe passé conjugué avec \"avoir\" s'accorde avec le COD seulement s'il est placé avant le verbe."},
+  {title:"Accord du participe passé avec être",text:"Le participe passé conjugué avec \"être\" s'accorde toujours avec le sujet."},
+  {title:"a / à",text:"\"a\" est le verbe avoir (on peut le remplacer par \"avait\"). \"à\" est une préposition."},
+  {title:"ou / où",text:"\"ou\" exprime un choix (on peut le remplacer par \"ou bien\"). \"où\" indique un lieu ou un temps."},
+  {title:"ses / ces / c'est / s'est",text:"\"ses\" = possessif. \"ces\" = démonstratif pluriel. \"c'est\" = présentatif. \"s'est\" = verbe pronominal."},
+  {title:"leur / leurs",text:"\"leur\" est invariable devant un verbe, s'accorde devant un nom pluriel : leurs affaires."},
+  {title:"Concordance des temps",text:"Dans un récit au passé, l'imparfait décrit un état/une habitude, le passé simple ou composé une action ponctuelle."},
+  {title:"tout / tous",text:"\"tout\" est invariable devant un adjectif (tout étonnées ≠ féminin pluriel toutes). \"tous\" pluriel masculin devant un nom."}
+];
+
+document.getElementById("grammarRules").innerHTML=grammarRulesList.map(rule=>`
+  <div class="grammar-rule">
+    <strong>${escapeHtml(rule.title)}</strong>
+    <span>${escapeHtml(rule.text)}</span>
+  </div>
+`).join("");
+
+/* --- Convertisseur (Outils) --- */
+
+const toolsConverterUnits={
+  length:{mm:0.001,cm:0.01,m:1,km:1000},
+  mass:{mg:0.000001,g:0.001,kg:1,tonne:1000},
+  speed:{"m/s":1,"km/h":0.277778,"mph":0.44704},
+  area:{"cm²":0.0001,"m²":1,"hectare":10000,"km²":1000000}
+};
+
+function fillToolsConverterSelects(){
+  const category=document.getElementById("toolsConverterCategory").value;
+  const fromSelect=document.getElementById("toolsConverterFrom");
+  const toSelect=document.getElementById("toolsConverterTo");
+
+  const options=category==="temperature"
+    ?["°C","°F","K"]
+    :Object.keys(toolsConverterUnits[category]);
+
+  fromSelect.innerHTML=options.map(unit=>`<option>${unit}</option>`).join("");
+  toSelect.innerHTML=options.map(unit=>`<option>${unit}</option>`).join("");
+
+  if(options.length>1)toSelect.selectedIndex=1;
+}
+
+document.getElementById("toolsConverterCategory").addEventListener("change",fillToolsConverterSelects);
+fillToolsConverterSelects();
+
+document.getElementById("toolsConvertButton").addEventListener("click",()=>{
+  const category=document.getElementById("toolsConverterCategory").value;
+  const value=parseFloat(document.getElementById("toolsConverterValue").value);
+  const from=document.getElementById("toolsConverterFrom").value;
+  const to=document.getElementById("toolsConverterTo").value;
+  const result=document.getElementById("toolsConverterResult");
+
+  if(isNaN(value)){
+    result.textContent="Entre une valeur.";
+    return;
+  }
+
+  let converted;
+
+  if(category==="temperature"){
+    converted=convertTemperature(value,from,to);
+  }else{
+    const units=toolsConverterUnits[category];
+    converted=value*units[from]/units[to];
+  }
+
+  result.textContent=`${value} ${from} = ${
+    Math.round(converted*10000)/10000
+  } ${to}`;
+});
+
+/* --- Dé & Pile ou face (Outils) --- */
+
+document.getElementById("toolsCoinFlipButton").addEventListener("click",()=>{
+  document.getElementById("toolsRandomResult").textContent=
+    Math.random()<0.5?"🪙 Pile":"🪙 Face";
+});
+
+document.getElementById("toolsDiceRollButton").addEventListener("click",()=>{
+  document.getElementById("toolsRandomResult").textContent=
+    "🎲 "+(Math.floor(Math.random()*6)+1);
+});
+
+/* --- Groupes aléatoires (Outils) --- */
+
+document.getElementById("toolsGenerateGroupsButton").addEventListener("click",()=>{
+  const names=document.getElementById("toolsGroupNames").value
+    .split(",")
+    .map(name=>name.trim())
+    .filter(Boolean);
+
+  const groupCount=parseInt(document.getElementById("toolsGroupCount").value,10);
+  const result=document.getElementById("toolsGroupsResult");
+
+  if(names.length<2){
+    result.innerHTML=`<div class="empty">Ajoute au moins deux noms.</div>`;
+    return;
+  }
+
+  if(!groupCount||groupCount<2){
+    result.innerHTML=`<div class="empty">Choisis au moins deux groupes.</div>`;
+    return;
+  }
+
+  const shuffled=[...names];
+  for(let i=shuffled.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];
+  }
+
+  const groups=Array.from({length:groupCount},()=>[]);
+  shuffled.forEach((name,index)=>{
+    groups[index%groupCount].push(name);
+  });
+
+  result.innerHTML=groups.map((group,index)=>`
+    <div class="task" style="border-left-color:var(--primary)">
+      <div class="task-info">
+        <div class="task-name">Groupe ${index+1}</div>
+        <div class="task-meta">${group.map(escapeHtml).join(", ")||"—"}</div>
+      </div>
+    </div>
+  `).join("");
+});
+
+/* --- Checklist examen --- */
+
+const examChecklistItems=[
+  {id:"stylos",label:"Stylos (bleu + noir) + rechange"},
+  {id:"calculatrice",label:"Calculatrice (piles chargées)"},
+  {id:"carte",label:"Carte d'identité / convocation"},
+  {id:"montre",label:"Montre (pas de smartwatch)"},
+  {id:"eau",label:"Bouteille d'eau"},
+  {id:"gouter",label:"Petit encas"},
+  {id:"regle",label:"Règle, équerre, compas"},
+  {id:"reveil",label:"Réveil réglé la veille"}
+];
+
+function renderExamChecklist(){
+  if(!data.examChecklistDone)data.examChecklistDone={};
+
+  document.getElementById("examChecklist").innerHTML=examChecklistItems.map(item=>{
+    const done=Boolean(data.examChecklistDone[item.id]);
+
+    return`
+      <div class="task ${done?"done":""}">
+        <div class="task-check" onclick="toggleExamChecklistItem('${item.id}')">
+          ${done?"✓":""}
+        </div>
+        <div class="task-info">
+          <div class="task-name">${escapeHtml(item.label)}</div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function toggleExamChecklistItem(id){
+  if(!data.examChecklistDone)data.examChecklistDone={};
+  data.examChecklistDone[id]=!data.examChecklistDone[id];
+  save();
+  renderExamChecklist();
+}
+
+renderExamChecklist();
 
 document.getElementById("exportData").addEventListener("click",()=>{
   downloadFile(
@@ -3140,7 +3915,7 @@ document.getElementById("quickAddButton").addEventListener("click",()=>{
   );
 
   if(choice==="1"){
-    navigate("quicknotes");
+    openSettingsTab("quicknotes");
     document.getElementById("addQuickNoteButton").click();
   }
 
@@ -3283,6 +4058,214 @@ function renderDashboard(){
     :`<div class="empty">Aucun événement prévu.</div>`;
 }
 
+/* =========================================================
+   Barre mobile — indicateur coulissant + disparition auto
+   ========================================================= */
+
+function moveMenuIndicator(){
+  const indicator=document.getElementById("menuIndicator");
+  const bar=document.querySelector(".mobile-menu");
+  const activeButton=bar&&bar.querySelector("button.active");
+
+  if(!indicator||!bar||!activeButton)return;
+
+  indicator.style.width=activeButton.offsetWidth+"px";
+  indicator.style.transform=`translateX(${activeButton.offsetLeft}px)`;
+}
+
+window.addEventListener("resize",moveMenuIndicator);
+moveMenuIndicator();
+
+let menuHideTimeout=null;
+
+function showMobileMenu(){
+  const bar=document.querySelector(".mobile-menu");
+  const handle=document.getElementById("menuHandle");
+
+  if(!bar)return;
+
+  bar.style.visibility="visible";
+  void bar.offsetWidth;
+  bar.classList.remove("hidden");
+  if(handle)handle.classList.remove("visible");
+
+  clearTimeout(menuHideTimeout);
+  menuHideTimeout=setTimeout(hideMobileMenu,7000);
+}
+
+function hideMobileMenu(){
+  const bar=document.querySelector(".mobile-menu");
+  const handle=document.getElementById("menuHandle");
+
+  if(!bar)return;
+
+  bar.classList.add("hidden");
+  if(handle)handle.classList.add("visible");
+}
+
+document.querySelector(".mobile-menu").addEventListener("transitionend",event=>{
+  if(event.propertyName!=="transform")return;
+
+  const bar=event.currentTarget;
+  if(bar.classList.contains("hidden")){
+    bar.style.visibility="hidden";
+  }
+});
+
+showMobileMenu();
+
+/* --- Gestes sur la barre : horizontal = changer d'onglet, vertical = cacher/afficher --- */
+
+function setupMobileMenuGestures(){
+  const bar=document.querySelector(".mobile-menu");
+  const indicator=document.getElementById("menuIndicator");
+  const handle=document.getElementById("menuHandle");
+
+  if(!bar||!indicator||!handle)return;
+
+  const hiddenOffset=90;
+  const axisThreshold=8;
+
+  let active=false;
+  let axis=null;
+  let startX=0;
+  let startY=0;
+  let baseOffset=0;
+  let verticalOffset=0;
+  let barRect=null;
+
+  function point(event){
+    const source=event.touches&&event.touches.length?event.touches[0]:event;
+    return{x:source.clientX,y:source.clientY};
+  }
+
+  function buttonsList(){
+    return[...bar.querySelectorAll("button[data-page]")];
+  }
+
+  function closestButtonAt(x){
+    let closest=null;
+    let minDistance=Infinity;
+
+    buttonsList().forEach(button=>{
+      const rect=button.getBoundingClientRect();
+      const center=rect.left+rect.width/2;
+      const distance=Math.abs(center-x);
+
+      if(distance<minDistance){
+        minDistance=distance;
+        closest=button;
+      }
+    });
+
+    return closest;
+  }
+
+  function beginGesture(event,fromHandle){
+    active=true;
+    axis=fromHandle?"y":null;
+
+    const p=point(event);
+    startX=p.x;
+    startY=p.y;
+
+    barRect=bar.getBoundingClientRect();
+    baseOffset=fromHandle?hiddenOffset:0;
+    verticalOffset=baseOffset;
+
+    clearTimeout(menuHideTimeout);
+
+    bar.style.visibility="visible";
+    bar.style.transition="none";
+    indicator.style.transition="none";
+  }
+
+  function moveGesture(event){
+    if(!active)return;
+
+    const p=point(event);
+    const deltaX=p.x-startX;
+    const deltaY=p.y-startY;
+
+    if(!axis){
+      if(Math.abs(deltaX)<axisThreshold&&Math.abs(deltaY)<axisThreshold)return;
+      axis=Math.abs(deltaX)>Math.abs(deltaY)?"x":"y";
+    }
+
+    if(axis==="x"){
+      bar.classList.remove("hidden");
+      bar.style.transform="translateY(0)";
+      bar.style.opacity="";
+
+      const clampedX=Math.max(barRect.left,Math.min(barRect.right,p.x));
+      const offset=Math.max(
+        0,
+        Math.min(barRect.width-indicator.offsetWidth,clampedX-barRect.left-indicator.offsetWidth/2)
+      );
+
+      indicator.style.transform=`translateX(${offset}px)`;
+    }else{
+      verticalOffset=Math.max(0,Math.min(hiddenOffset,baseOffset+deltaY));
+
+      bar.classList.remove("hidden");
+      bar.style.transform=`translateY(${verticalOffset}px)`;
+      bar.style.opacity=String(1-(verticalOffset/hiddenOffset)*0.85);
+    }
+
+    if(event.cancelable)event.preventDefault();
+  }
+
+  function endGesture(event){
+    if(!active)return;
+    active=false;
+
+    bar.style.transition="";
+    indicator.style.transition="";
+
+    if(axis==="x"){
+      const p=point(event.changedTouches&&event.changedTouches.length?{touches:event.changedTouches}:event);
+      const target=closestButtonAt(p.x);
+
+      bar.style.transform="";
+      bar.style.opacity="";
+
+      if(target){
+        navigate(target.dataset.page);
+      }else{
+        moveMenuIndicator();
+      }
+
+      menuHideTimeout=setTimeout(hideMobileMenu,7000);
+    }else{
+      bar.style.transform="";
+      bar.style.opacity="";
+
+      if(verticalOffset>hiddenOffset*0.4){
+        hideMobileMenu();
+      }else{
+        showMobileMenu();
+      }
+    }
+
+    axis=null;
+  }
+
+  bar.addEventListener("touchstart",event=>beginGesture(event,false),{passive:true});
+  bar.addEventListener("touchmove",moveGesture,{passive:false});
+  bar.addEventListener("touchend",endGesture);
+
+  handle.addEventListener("touchstart",event=>beginGesture(event,true),{passive:true});
+  handle.addEventListener("touchmove",moveGesture,{passive:false});
+  handle.addEventListener("touchend",endGesture);
+
+  bar.addEventListener("mousedown",event=>beginGesture(event,false));
+  handle.addEventListener("mousedown",event=>beginGesture(event,true));
+  window.addEventListener("mousemove",moveGesture);
+  window.addEventListener("mouseup",endGesture);
+}
+
+setupMobileMenuGestures();
+
 /* Mouvement du reflet Liquid Glass avec le doigt ou la souris */
 
 const glassBar=document.querySelector(".mobile-menu");
@@ -3323,10 +4306,6 @@ const swipePages=[
   "courses",
   "agenda",
   "tasks",
-  "quicknotes",
-  "pomodoro",
-  "objectives",
-  "tools",
   "settings"
 ];
 
@@ -3353,7 +4332,7 @@ document.addEventListener("touchend",event=>{
     Math.abs(distanceX)<Math.abs(distanceY)*1.35
   )return;
 
-  if(event.target.closest("input,textarea,select,.week-grid"))return;
+  if(event.target.closest("input,textarea,select,.week-grid,.mobile-menu,.menu-handle"))return;
 
   const index=swipePages.indexOf(currentPage);
   if(index<0)return;
@@ -3383,6 +4362,37 @@ function renderAll(){
 
 renderAll();
 updateTimer();
+
+/* =========================================================
+   OUTILS — Convertisseur, générateur de groupes, tirage au sort
+   ========================================================= */
+
+function convertTemperature(value,from,to){
+  let celsius=value;
+  if(from==="°F")celsius=(value-32)*5/9;
+  if(from==="K")celsius=value-273.15;
+
+  if(to==="°C")return celsius;
+  if(to==="°F")return celsius*9/5+32;
+  return celsius+273.15;
+}
+
+document.getElementById("convertBaseButton").addEventListener("click",()=>{
+  const value=document.getElementById("baseDecimal").value.trim();
+  const result=document.getElementById("baseResult");
+  const number=Number(value);
+
+  if(value===""||isNaN(number)||!Number.isInteger(number)||number<0){
+    result.textContent="Entre un nombre entier positif.";
+    return;
+  }
+
+  result.innerHTML=`
+    Binaire : <strong>${number.toString(2)}</strong><br>
+    Hexadécimal : <strong>${number.toString(16).toUpperCase()}</strong>
+  `;
+});
+
 
 /* =========================================================
    StudySpace V2.3 — Reflets dynamiques pour l'interface PC
