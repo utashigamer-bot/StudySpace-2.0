@@ -687,6 +687,78 @@ input,textarea,select{
   border:1px solid color-mix(in srgb,var(--danger) 40%,var(--border));
 }
 
+.task-calendar-weekdays{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  margin-bottom:6px;
+}
+
+.task-calendar-weekdays span{
+  text-align:center;
+  font-size:11px;
+  font-weight:800;
+  color:var(--muted);
+  text-transform:uppercase;
+}
+
+.task-calendar-grid{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:4px;
+}
+
+.task-calendar-day{
+  position:relative;
+  aspect-ratio:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  border-radius:10px;
+  border:1px solid transparent;
+  font-size:13px;
+  cursor:pointer;
+  background:var(--surface2);
+}
+
+.task-calendar-day.other-month{
+  opacity:.35;
+}
+
+.task-calendar-day.today{
+  border-color:var(--primary);
+  font-weight:800;
+}
+
+.task-calendar-day.selected{
+  background:var(--primary);
+  color:#fff;
+}
+
+.task-calendar-day.selected .task-calendar-dot{
+  background:#fff;
+}
+
+.task-calendar-dot{
+  width:5px;
+  height:5px;
+  border-radius:50%;
+  background:var(--primary);
+  margin-top:3px;
+}
+
+.task-calendar-footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px solid var(--border);
+  font-size:13px;
+  color:var(--muted);
+}
+
 .periodic-grid{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(64px,1fr));
@@ -1918,8 +1990,27 @@ input,textarea,select{
   </div>
 
   <div class="tasks-layout">
+    <div class="card card-padding" style="grid-column:1 / -1">
+      <div class="calendar-toolbar">
+        <button class="button button-secondary" id="taskCalendarPrev">‹</button>
+        <h2 id="taskCalendarTitle"></h2>
+        <button class="button button-secondary" id="taskCalendarNext">›</button>
+      </div>
+
+      <div class="task-calendar-weekdays">
+        <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
+      </div>
+
+      <div class="task-calendar-grid" id="taskCalendarGrid"></div>
+
+      <div class="task-calendar-footer" id="taskCalendarFooter" style="display:none">
+        <span id="taskCalendarSelectedLabel"></span>
+        <button class="button button-secondary" onclick="clearTaskDayFilter()">Voir tous les devoirs</button>
+      </div>
+    </div>
+
     <div class="card card-padding">
-      <div class="section-title">Tous les devoirs</div>
+      <div class="section-title" id="taskListTitle">Tous les devoirs</div>
 
       <div class="task-filters" id="taskFilters"></div>
 
@@ -2484,6 +2575,8 @@ let scheduleEditingWeek="A";
 let scheduleEditorOpen=false;
 let expandedTaskId=null;
 let taskFilterType="all";
+let taskCalendarMonthOffset=0;
+let taskDayFilter=null;
 
 function save(){
   Store.set("studyspaceData",data);
@@ -2989,7 +3082,89 @@ function getTaskType(task){
   return taskTypeStyles[task.type]?task.type:"Devoir";
 }
 
+function renderTaskCalendar(){
+  const today=new Date();
+  const reference=new Date(today.getFullYear(),today.getMonth()+taskCalendarMonthOffset,1);
+
+  document.getElementById("taskCalendarTitle").textContent=
+    reference.toLocaleDateString("fr-FR",{month:"long",year:"numeric"});
+
+  const firstOfMonth=new Date(reference.getFullYear(),reference.getMonth(),1);
+  const startDay=(firstOfMonth.getDay()+6)%7;
+
+  const gridStart=new Date(firstOfMonth);
+  gridStart.setDate(gridStart.getDate()-startDay);
+
+  const tasksByDay={};
+  data.tasks.forEach(task=>{
+    if(!task.date)return;
+    tasksByDay[task.date]=(tasksByDay[task.date]||0)+1;
+  });
+
+  const todayKey=dateKey(today);
+  const cells=[];
+
+  for(let i=0;i<42;i++){
+    const day=new Date(gridStart);
+    day.setDate(day.getDate()+i);
+
+    const key=dateKey(day);
+    const otherMonth=day.getMonth()!==reference.getMonth();
+    const hasTasks=Boolean(tasksByDay[key]);
+
+    cells.push(`
+      <div
+        class="task-calendar-day
+          ${otherMonth?"other-month":""}
+          ${key===todayKey?"today":""}
+          ${key===taskDayFilter?"selected":""}"
+        onclick="selectTaskDay('${key}')"
+      >
+        <span>${day.getDate()}</span>
+        ${hasTasks?`<span class="task-calendar-dot"></span>`:""}
+      </div>
+    `);
+  }
+
+  document.getElementById("taskCalendarGrid").innerHTML=cells.join("");
+
+  const footer=document.getElementById("taskCalendarFooter");
+  if(taskDayFilter){
+    footer.style.display="flex";
+    document.getElementById("taskCalendarSelectedLabel").textContent=
+      "Devoirs du "+formatDate(taskDayFilter);
+  }else{
+    footer.style.display="none";
+  }
+}
+
+function selectTaskDay(key){
+  taskDayFilter=taskDayFilter===key?null:key;
+  renderTasks();
+}
+
+function clearTaskDayFilter(){
+  taskDayFilter=null;
+  renderTasks();
+}
+
+document.getElementById("taskCalendarPrev").addEventListener("click",()=>{
+  taskCalendarMonthOffset--;
+  renderTasks();
+});
+
+document.getElementById("taskCalendarNext").addEventListener("click",()=>{
+  taskCalendarMonthOffset++;
+  renderTasks();
+});
+
 function renderTasks(){
+  renderTaskCalendar();
+
+  document.getElementById("taskListTitle").textContent=taskDayFilter
+    ?"Devoirs du "+formatDate(taskDayFilter)
+    :"Tous les devoirs";
+
   const list=document.getElementById("taskList");
 
   const subjectSelect=document.getElementById("taskSubject");
@@ -3002,8 +3177,12 @@ function renderTasks(){
 
   subjectSelect.value=currentSubjectValue;
 
-  const counts={all:data.tasks.length,Devoir:0,"Contrôle":0};
-  data.tasks.forEach(task=>{counts[getTaskType(task)]++;});
+  const dayTasks=taskDayFilter
+    ?data.tasks.filter(task=>task.date===taskDayFilter)
+    :data.tasks;
+
+  const counts={all:dayTasks.length,Devoir:0,"Contrôle":0};
+  dayTasks.forEach(task=>{counts[getTaskType(task)]++;});
 
   const filters=[
     {key:"all",label:"Tous",count:counts.all,color:"var(--text)"},
@@ -3023,12 +3202,17 @@ function renderTasks(){
 
   const tasks=[...data.tasks]
     .filter(task=>taskFilterType==="all"||getTaskType(task)===taskFilterType)
+    .filter(task=>!taskDayFilter||task.date===taskDayFilter)
     .sort((a,b)=>
       Number(a.done)-Number(b.done)||(a.date||"").localeCompare(b.date||"")
     );
 
   if(!tasks.length){
-    list.innerHTML=`<div class="empty">Aucun devoir dans cette catégorie.</div>`;
+    list.innerHTML=`<div class="empty">${
+      taskDayFilter
+      ?"Aucun devoir ce jour-là."
+      :"Aucun devoir dans cette catégorie."
+    }</div>`;
     return;
   }
 
