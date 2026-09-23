@@ -1014,46 +1014,47 @@ input,textarea,select{
 
   .mobile-menu{
     position:fixed;
-    right:12px;
-    bottom:calc(12px + env(safe-area-inset-bottom));
-    left:12px;
+    right:6px;
+    bottom:calc(6px + env(safe-area-inset-bottom));
+    left:6px;
     z-index:50;
 
     display:flex;
     align-items:center;
     gap:3px;
 
-    height:74px;
-    padding:7px;
+    height:86px;
+    padding:8px;
 
     overflow:visible;
 
-    border:1px solid rgba(255,255,255,.32);
+    border:1px solid rgba(255,255,255,.24);
     border-radius:27px;
 
     background:
       radial-gradient(
         circle at var(--glass-x,50%) var(--glass-y,0%),
-        rgba(255,255,255,.18),
+        rgba(255,255,255,.12),
         transparent 32%
       ),
       linear-gradient(
         125deg,
-        rgba(255,255,255,.22),
-        rgba(255,255,255,.10) 42%,
-        rgba(255,255,255,.04)
+        rgba(255,255,255,.14),
+        rgba(255,255,255,.06) 42%,
+        rgba(255,255,255,.02)
       );
 
     box-shadow:
-      0 18px 40px rgba(31,42,78,.16),
-      0 4px 12px rgba(31,42,78,.08),
-      inset 0 1px 0 rgba(255,255,255,.55),
-      inset 0 -1px 0 rgba(0,0,0,.06);
+      0 18px 40px rgba(31,42,78,.12),
+      0 4px 12px rgba(31,42,78,.06),
+      inset 0 1px 0 rgba(255,255,255,.40),
+      inset 0 -1px 0 rgba(0,0,0,.04);
 
-    backdrop-filter:blur(22px) saturate(180%) contrast(105%);
-    -webkit-backdrop-filter:blur(22px) saturate(180%) contrast(105%);
+    backdrop-filter:blur(16px) saturate(170%) contrast(103%);
+    -webkit-backdrop-filter:blur(16px) saturate(170%) contrast(103%);
 
     isolation:isolate;
+    touch-action:none;
     transition:
       background .25s ease,
       box-shadow .25s ease,
@@ -1070,20 +1071,30 @@ input,textarea,select{
   .menu-handle{
     position:fixed;
     left:50%;
-    bottom:calc(10px + env(safe-area-inset-bottom));
+    bottom:0;
     z-index:51;
 
-    width:52px;
-    height:6px;
-    border-radius:20px;
-
-    background:rgba(120,130,160,.55);
-    box-shadow:0 2px 10px rgba(0,0,0,.18);
+    width:180px;
+    height:56px;
 
     opacity:0;
     transform:translateX(-50%) translateY(20px);
     pointer-events:none;
+    touch-action:none;
     transition:opacity .3s ease,transform .3s ease;
+  }
+
+  .menu-handle::after{
+    position:absolute;
+    left:50%;
+    bottom:calc(10px + env(safe-area-inset-bottom));
+    content:"";
+    width:96px;
+    height:7px;
+    border-radius:20px;
+    background:rgba(120,130,160,.6);
+    box-shadow:0 2px 10px rgba(0,0,0,.18);
+    transform:translateX(-50%);
   }
 
   .menu-handle.visible{
@@ -1092,8 +1103,8 @@ input,textarea,select{
     pointer-events:auto;
   }
 
-  [data-theme="dark"] .menu-handle{
-    background:rgba(200,205,225,.35);
+  [data-theme="dark"] .menu-handle::after{
+    background:rgba(200,205,225,.4);
   }
 
   .menu-indicator{
@@ -1152,26 +1163,26 @@ input,textarea,select{
   }
 
   [data-theme="dark"] .mobile-menu{
-    border-color:rgba(255,255,255,.14);
+    border-color:rgba(255,255,255,.10);
     background:
       radial-gradient(
         circle at var(--glass-x,50%) var(--glass-y,0%),
-        rgba(150,165,255,.12),
+        rgba(150,165,255,.08),
         transparent 34%
       ),
       linear-gradient(
         125deg,
-        rgba(76,88,132,.42),
-        rgba(35,43,70,.48) 45%,
-        rgba(17,22,39,.55)
+        rgba(76,88,132,.26),
+        rgba(35,43,70,.30) 45%,
+        rgba(17,22,39,.34)
       );
     box-shadow:
-      0 18px 40px rgba(0,0,0,.30),
-      0 4px 12px rgba(0,0,0,.16),
-      inset 0 1px 0 rgba(255,255,255,.16),
-      inset 0 -1px 0 rgba(0,0,0,.20);
-    backdrop-filter:blur(24px) saturate(170%) contrast(108%);
-    -webkit-backdrop-filter:blur(24px) saturate(170%) contrast(108%);
+      0 18px 40px rgba(0,0,0,.24),
+      0 4px 12px rgba(0,0,0,.12),
+      inset 0 1px 0 rgba(255,255,255,.12),
+      inset 0 -1px 0 rgba(0,0,0,.16);
+    backdrop-filter:blur(18px) saturate(160%) contrast(105%);
+    -webkit-backdrop-filter:blur(18px) saturate(160%) contrast(105%);
   }
 
   [data-theme="dark"] .mobile-menu::after{
@@ -1188,11 +1199,11 @@ input,textarea,select{
     flex:1;
     min-width:0;
     height:100%;
-    padding:6px 2px 5px;
+    padding:8px 2px 6px;
     border-radius:20px;
     color:var(--muted);
     background:transparent;
-    font-size:10px;
+    font-size:11px;
     font-weight:700;
     transition:
       color .28s ease,
@@ -1203,9 +1214,9 @@ input,textarea,select{
 
   .mobile-menu button span{
     display:block;
-    margin-bottom:2px;
-    font-size:21px;
-    line-height:25px;
+    margin-bottom:3px;
+    font-size:24px;
+    line-height:28px;
     transition:transform .28s ease,filter .28s ease;
   }
 
@@ -4307,7 +4318,7 @@ function setupMobileMenuGestures(){
 
   if(!bar||!indicator||!handle)return;
 
-  const hiddenOffset=90;
+  const hiddenOffset=110;
   const axisThreshold=8;
 
   let active=false;
@@ -4367,6 +4378,8 @@ function setupMobileMenuGestures(){
   function moveGesture(event){
     if(!active)return;
 
+    if(event.cancelable)event.preventDefault();
+
     const p=point(event);
     const deltaX=p.x-startX;
     const deltaY=p.y-startY;
@@ -4395,8 +4408,6 @@ function setupMobileMenuGestures(){
       bar.style.transform=`translateY(${verticalOffset}px)`;
       bar.style.opacity=String(1-(verticalOffset/hiddenOffset)*0.85);
     }
-
-    if(event.cancelable)event.preventDefault();
   }
 
   function endGesture(event){
