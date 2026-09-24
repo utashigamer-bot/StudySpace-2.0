@@ -1012,6 +1012,154 @@ input,textarea,select{
     - support du thème sombre
   */
 
+  .mobile-menu,.menu-handle{display:none}
+
+  .side-menu{
+    position:fixed;
+    top:50%;
+    left:6px;
+    transform:translateY(-50%);
+    z-index:50;
+
+    width:62px;
+    height:204px;
+    overflow:hidden;
+
+    border:1px solid rgba(255,255,255,.24);
+    border-radius:26px;
+
+    background:
+      radial-gradient(
+        circle at 50% var(--glass-y,0%),
+        rgba(255,255,255,.12),
+        transparent 32%
+      ),
+      linear-gradient(
+        160deg,
+        rgba(255,255,255,.14),
+        rgba(255,255,255,.06) 42%,
+        rgba(255,255,255,.02)
+      );
+
+    box-shadow:
+      0 18px 40px rgba(31,42,78,.12),
+      0 4px 12px rgba(31,42,78,.06),
+      inset 0 1px 0 rgba(255,255,255,.40),
+      inset 0 -1px 0 rgba(0,0,0,.04);
+
+    backdrop-filter:blur(16px) saturate(170%) contrast(103%);
+    -webkit-backdrop-filter:blur(16px) saturate(170%) contrast(103%);
+
+    touch-action:none;
+    transition:transform .4s cubic-bezier(.4,0,.2,1),opacity .4s ease;
+  }
+
+  .side-menu.hidden{
+    transform:translateY(-50%) translateX(-90px);
+    opacity:0;
+    pointer-events:none;
+  }
+
+  .side-menu-handle{
+    position:fixed;
+    top:50%;
+    left:0;
+    transform:translateY(-50%) translateX(-40px);
+    z-index:51;
+
+    width:56px;
+    height:130px;
+
+    opacity:0;
+    pointer-events:none;
+    touch-action:none;
+    transition:opacity .3s ease,transform .3s ease;
+  }
+
+  .side-menu-handle::after{
+    position:absolute;
+    top:50%;
+    left:10px;
+    content:"";
+    width:6px;
+    height:64px;
+    border-radius:20px;
+    background:rgba(120,130,160,.6);
+    box-shadow:0 2px 10px rgba(0,0,0,.18);
+    transform:translateY(-50%);
+  }
+
+  .side-menu-handle.visible{
+    opacity:1;
+    transform:translateY(-50%) translateX(0);
+    pointer-events:auto;
+  }
+
+  [data-theme="dark"] .side-menu-handle::after{
+    background:rgba(200,205,225,.4);
+  }
+
+  [data-theme="dark"] .side-menu{
+    border-color:rgba(255,255,255,.10);
+    background:
+      radial-gradient(
+        circle at 50% var(--glass-y,0%),
+        rgba(150,165,255,.08),
+        transparent 34%
+      ),
+      linear-gradient(
+        160deg,
+        rgba(76,88,132,.26),
+        rgba(35,43,70,.30) 45%,
+        rgba(17,22,39,.34)
+      );
+    box-shadow:
+      0 18px 40px rgba(0,0,0,.24),
+      0 4px 12px rgba(0,0,0,.12),
+      inset 0 1px 0 rgba(255,255,255,.12),
+      inset 0 -1px 0 rgba(0,0,0,.16);
+    backdrop-filter:blur(18px) saturate(160%) contrast(105%);
+    -webkit-backdrop-filter:blur(18px) saturate(160%) contrast(105%);
+  }
+
+  .side-menu-track{
+    display:flex;
+    flex-direction:column;
+    transition:transform .35s cubic-bezier(.4,0,.2,1);
+  }
+
+  .side-menu-track button{
+    flex-shrink:0;
+    width:62px;
+    height:68px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--muted);
+    background:transparent;
+  }
+
+  .side-menu-track button span{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:42px;
+    height:42px;
+    border-radius:14px;
+    font-size:21px;
+    transition:
+      background .28s ease,
+      color .28s ease,
+      transform .28s cubic-bezier(.34,1.56,.64,1);
+  }
+
+  .side-menu-track button.active span{
+    color:#fff;
+    background:var(--primary);
+    transform:scale(1.06);
+    box-shadow:0 6px 16px color-mix(in srgb,var(--primary) 50%,transparent);
+  }
+
   .mobile-menu{
     position:fixed;
     right:6px;
@@ -2484,6 +2632,18 @@ input,textarea,select{
 </nav>
 
 <div class="menu-handle" id="menuHandle"></div>
+
+<nav class="side-menu" id="sideMenu">
+  <div class="side-menu-track" id="sideMenuTrack">
+    <button class="active" data-page="dashboard"><span>🏠</span></button>
+    <button data-page="courses"><span>📚</span></button>
+    <button data-page="agenda"><span>📅</span></button>
+    <button data-page="tasks"><span>✅</span></button>
+    <button data-page="settings"><span>⚙️</span></button>
+  </div>
+</nav>
+
+<div class="side-menu-handle" id="sideMenuHandle"></div>
 
 <script>
 "use strict";
@@ -4461,6 +4621,194 @@ function setupMobileMenuGestures(){
 
 setupMobileMenuGestures();
 
+/* =========================================================
+   Barre latérale gauche — 3 onglets visibles sur 5,
+   glisser le doigt vers le haut/bas fait défiler les autres
+   ========================================================= */
+
+function setupSideMenu(){
+  const track=document.getElementById("sideMenuTrack");
+  const menu=document.getElementById("sideMenu");
+  const handle=document.getElementById("sideMenuHandle");
+
+  if(!track||!menu||!handle)return;
+
+  const itemHeight=68;
+  const visibleCount=3;
+  const totalItems=track.children.length;
+  const maxIndex=Math.max(0,totalItems-visibleCount);
+  const hiddenOffsetX=90;
+  const axisThreshold=8;
+
+  let currentIndex=0;
+  let active=false;
+  let didDrag=false;
+  let axis=null;
+  let startX=0;
+  let startY=0;
+  let baseOffsetY=0;
+  let baseOffsetX=0;
+  let horizontalOffset=0;
+  let activePointerId=null;
+  let sideMenuHideTimeout=null;
+
+  function applyVerticalOffset(offset){
+    track.style.transform=`translateY(${-offset}px)`;
+  }
+
+  function snapTo(index){
+    currentIndex=Math.max(0,Math.min(maxIndex,index));
+    applyVerticalOffset(currentIndex*itemHeight);
+  }
+
+  function showSideMenu(){
+    menu.style.visibility="visible";
+    void menu.offsetWidth;
+    menu.style.transform="";
+    menu.style.opacity="";
+    menu.classList.remove("hidden");
+    handle.classList.remove("visible");
+
+    clearTimeout(sideMenuHideTimeout);
+    sideMenuHideTimeout=setTimeout(hideSideMenu,6000);
+  }
+
+  function hideSideMenu(){
+    menu.style.transform="";
+    menu.style.opacity="";
+    menu.classList.add("hidden");
+    handle.classList.add("visible");
+  }
+
+  menu.addEventListener("transitionend",event=>{
+    if(event.propertyName!=="transform")return;
+    if(menu.classList.contains("hidden")){
+      menu.style.visibility="hidden";
+    }
+  });
+
+  function start(fromHandle){
+    return event=>{
+      if(activePointerId!==null)return;
+
+      activePointerId=event.pointerId;
+      active=true;
+      didDrag=false;
+      axis=fromHandle?"x":null;
+      startX=event.clientX;
+      startY=event.clientY;
+      baseOffsetY=currentIndex*itemHeight;
+      baseOffsetX=fromHandle?hiddenOffsetX:0;
+      horizontalOffset=baseOffsetX;
+
+      clearTimeout(sideMenuHideTimeout);
+      menu.style.visibility="visible";
+      menu.style.transition="none";
+      track.style.transition="none";
+
+      const target=fromHandle?handle:menu;
+      target.setPointerCapture&&target.setPointerCapture(event.pointerId);
+    };
+  }
+
+  function move(event){
+    if(!active||event.pointerId!==activePointerId)return;
+
+    const deltaX=event.clientX-startX;
+    const deltaY=event.clientY-startY;
+
+    if(!axis){
+      if(Math.abs(deltaX)<axisThreshold&&Math.abs(deltaY)<axisThreshold)return;
+      axis=Math.abs(deltaX)>Math.abs(deltaY)?"x":"y";
+    }
+
+    didDrag=true;
+
+    if(axis==="x"){
+      horizontalOffset=Math.max(0,Math.min(hiddenOffsetX,baseOffsetX-deltaX));
+
+      menu.classList.remove("hidden");
+      menu.style.transform=`translateY(-50%) translateX(${-horizontalOffset}px)`;
+      menu.style.opacity=String(1-(horizontalOffset/hiddenOffsetX)*0.9);
+    }else{
+      const offset=Math.max(
+        0,
+        Math.min(maxIndex*itemHeight,baseOffsetY-deltaY)
+      );
+
+      applyVerticalOffset(offset);
+    }
+
+    if(event.cancelable)event.preventDefault();
+  }
+
+  function end(event){
+    if(!active||event.pointerId!==activePointerId)return;
+    active=false;
+    activePointerId=null;
+
+    menu.style.transition="";
+    track.style.transition="";
+
+    if(axis==="x"){
+      if(horizontalOffset>hiddenOffsetX*0.35){
+        hideSideMenu();
+      }else{
+        showSideMenu();
+      }
+    }else if(axis==="y"){
+      const deltaY=event.clientY-startY;
+      const rawIndex=(baseOffsetY-deltaY)/itemHeight;
+      snapTo(Math.round(rawIndex));
+      clearTimeout(sideMenuHideTimeout);
+      sideMenuHideTimeout=setTimeout(hideSideMenu,6000);
+    }else{
+      snapTo(currentIndex);
+      clearTimeout(sideMenuHideTimeout);
+      sideMenuHideTimeout=setTimeout(hideSideMenu,6000);
+    }
+
+    axis=null;
+  }
+
+  menu.addEventListener("pointerdown",start(false));
+  menu.addEventListener("pointermove",move,{passive:false});
+  menu.addEventListener("pointerup",end);
+  menu.addEventListener("pointercancel",end);
+
+  handle.addEventListener("pointerdown",start(true));
+  handle.addEventListener("pointermove",move,{passive:false});
+  handle.addEventListener("pointerup",end);
+  handle.addEventListener("pointercancel",end);
+
+  menu.addEventListener("click",event=>{
+    if(didDrag){
+      event.stopPropagation();
+      event.preventDefault();
+    }
+  },true);
+
+  function centerOnPage(page){
+    const buttons=[...track.querySelectorAll("button")];
+    const index=buttons.findIndex(button=>button.dataset.page===page);
+    if(index===-1)return;
+
+    const centered=index-Math.floor(visibleCount/2);
+    snapTo(centered);
+  }
+
+  const originalNavigate=navigate;
+  navigate=function(page){
+    originalNavigate(page);
+    centerOnPage(page);
+  };
+
+  centerOnPage(currentPage);
+  showSideMenu();
+}
+
+setupSideMenu();
+
 /* Mouvement du reflet Liquid Glass avec le doigt ou la souris */
 
 const glassBar=document.querySelector(".mobile-menu");
@@ -4527,7 +4875,7 @@ document.addEventListener("touchend",event=>{
     Math.abs(distanceX)<Math.abs(distanceY)*1.35
   )return;
 
-  if(event.target.closest("input,textarea,select,.week-grid,.mobile-menu,.menu-handle"))return;
+  if(event.target.closest("input,textarea,select,.week-grid,.mobile-menu,.menu-handle,.side-menu,.side-menu-handle"))return;
 
   const index=swipePages.indexOf(currentPage);
   if(index<0)return;
