@@ -1022,7 +1022,7 @@ input,textarea,select{
     z-index:50;
 
     width:62px;
-    height:204px;
+    height:246px;
     overflow:visible;
 
     border:1px solid rgba(255,255,255,.30);
@@ -1184,7 +1184,7 @@ input,textarea,select{
   .side-menu-track button{
     flex-shrink:0;
     width:62px;
-    height:68px;
+    height:82px;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -1196,10 +1196,10 @@ input,textarea,select{
     display:flex;
     align-items:center;
     justify-content:center;
-    width:42px;
-    height:42px;
-    border-radius:14px;
-    font-size:21px;
+    width:48px;
+    height:48px;
+    border-radius:16px;
+    font-size:23px;
     transition:
       background .28s ease,
       color .28s ease,
@@ -4688,7 +4688,7 @@ function setupSideMenu(){
 
   if(!track||!menu||!handle)return;
 
-  const itemHeight=68;
+  const itemHeight=82;
   const visibleCount=3;
   const totalItems=track.children.length;
   const maxIndex=Math.max(0,totalItems-visibleCount);
