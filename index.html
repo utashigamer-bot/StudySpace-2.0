@@ -461,6 +461,9 @@ input,textarea,select{
 
 .mobile-agenda{display:none}
 
+.week-grid.single{grid-template-columns:1fr}
+.week-grid.single .day-column{min-height:0}
+
 .settings-tab-panel{display:block}
 
 .schedule-config-header{
@@ -2151,6 +2154,10 @@ input,textarea,select{
       </div>
 
       <div class="mobile-agenda" id="mobileAgenda"></div>
+
+      <button class="button button-secondary" style="width:100%;margin-top:14px" id="toggleOtherDaysButton">
+        Afficher les autres jours
+      </button>
     </div>
 
     <div class="card card-padding">
@@ -2803,6 +2810,7 @@ let expandedTaskId=null;
 let taskFilterType="all";
 let taskCalendarMonthOffset=0;
 let taskDayFilter=null;
+let showOtherDays=false;
 
 function save(){
   Store.set("studyspaceData",data);
@@ -3149,6 +3157,10 @@ function renderAgenda(){
     days.push(day);
   }
 
+  const todayKeyForAgenda=dateKey(new Date());
+  let focusIndex=days.findIndex(day=>dateKey(day)===todayKeyForAgenda);
+  if(focusIndex===-1)focusIndex=0;
+
   const first=days[0].toLocaleDateString("fr-FR",{day:"numeric",month:"long"});
   const last=days[6].toLocaleDateString("fr-FR",{
     day:"numeric",
@@ -3159,7 +3171,10 @@ function renderAgenda(){
   document.getElementById("weekTitle").textContent=
     `${first} — ${last} · Semaine ${weekType}`;
 
+  document.getElementById("weekGrid").className="week-grid"+(showOtherDays?"":" single");
+
   document.getElementById("weekGrid").innerHTML=days.map((day,index)=>{
+    if(!showOtherDays&&index!==focusIndex)return"";
     const key=dateKey(day);
     const courses=[...data.scheduleTemplates[weekType][index]]
       .sort((a,b)=>(a.time||"").localeCompare(b.time||""));
@@ -3203,6 +3218,7 @@ function renderAgenda(){
   }).join("");
 
   document.getElementById("mobileAgenda").innerHTML=days.map((day,index)=>{
+    if(!showOtherDays&&index!==focusIndex)return"";
     const key=dateKey(day);
     const today=key===dateKey(new Date());
 
@@ -3258,6 +3274,9 @@ function renderAgenda(){
     `;
   }).join("");
 
+  document.getElementById("toggleOtherDaysButton").textContent=
+    showOtherDays?"Masquer les autres jours":"Afficher les autres jours";
+
   renderScheduleConfig();
 }
 
@@ -3268,6 +3287,11 @@ document.getElementById("previousWeek").addEventListener("click",()=>{
 
 document.getElementById("nextWeek").addEventListener("click",()=>{
   weekOffset++;
+  renderAgenda();
+});
+
+document.getElementById("toggleOtherDaysButton").addEventListener("click",()=>{
+  showOtherDays=!showOtherDays;
   renderAgenda();
 });
 
