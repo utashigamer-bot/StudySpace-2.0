@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#536dfe">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>StudySpace V2.4</title>
 
 <style>
@@ -891,8 +894,8 @@ input,textarea,select{
   }
 
   .topbar{
-    height:65px;
-    padding:0 15px;
+    height:calc(65px + env(safe-area-inset-top));
+    padding:env(safe-area-inset-top) 15px 0;
   }
 
   .search{width:100%}
@@ -5427,6 +5430,10 @@ if(window.matchMedia("(min-width:761px)").matches){
   const reduced=window.matchMedia("(prefers-reduced-motion:reduce)").matches;
   const duration=reduced?900:3000;
 
+  const themeMeta=document.querySelector('meta[name="theme-color"]');
+  const previousThemeColor=themeMeta?themeMeta.content:null;
+  if(themeMeta)themeMeta.content="#1b1840";
+
   const plural=(count,word)=>`${count} ${word}${count>1?"s":""}`;
 
   const subjectsCount=(data.subjects||[]).length;
@@ -5483,6 +5490,8 @@ if(window.matchMedia("(min-width:761px)").matches){
     cancelAnimationFrame(frame);
     splash.classList.add("leaving");
     document.body.classList.remove("splash-active");
+
+    if(themeMeta&&previousThemeColor)themeMeta.content=previousThemeColor;
 
     setTimeout(()=>splash.remove(),800);
   }
