@@ -1926,10 +1926,363 @@ input,textarea,select{
   }
 }
 
+/* =========================================================
+   Écran de lancement — StudySpace
+   ========================================================= */
+
+body.splash-active{overflow:hidden}
+
+.splash{
+  position:fixed;
+  inset:0;
+  z-index:1000;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:calc(36px + env(safe-area-inset-top)) 28px calc(30px + env(safe-area-inset-bottom));
+  overflow:hidden;
+  color:#eef2ff;
+  background:radial-gradient(120% 90% at 50% 0%,#1b1840 0%,#0c0b14 62%);
+  cursor:pointer;
+  transition:
+    opacity .7s cubic-bezier(.4,0,.2,1),
+    transform .7s cubic-bezier(.4,0,.2,1),
+    filter .7s ease;
+  animation:splashSafety .6s ease 8s forwards;
+}
+
+.splash.leaving{
+  opacity:0;
+  transform:scale(1.04);
+  filter:blur(10px);
+  pointer-events:none;
+}
+
+.splash-aurora,
+.splash-grid{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+}
+
+.splash-aurora span{
+  position:absolute;
+  border-radius:50%;
+  filter:blur(70px);
+  opacity:.55;
+  animation:splashFloat 9s ease-in-out infinite alternate;
+}
+
+.splash-aurora span:nth-child(1){
+  width:380px;
+  height:380px;
+  left:-120px;
+  top:-100px;
+  background:#536dfe;
+}
+
+.splash-aurora span:nth-child(2){
+  width:340px;
+  height:340px;
+  right:-120px;
+  top:30%;
+  background:#895cf6;
+  animation-delay:-3s;
+}
+
+.splash-aurora span:nth-child(3){
+  width:320px;
+  height:320px;
+  left:15%;
+  bottom:-140px;
+  background:#2dd4bf;
+  opacity:.35;
+  animation-delay:-6s;
+}
+
+.splash-grid{
+  background-image:
+    linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
+  background-size:44px 44px;
+  -webkit-mask-image:radial-gradient(circle at 50% 45%,#000,transparent 70%);
+  mask-image:radial-gradient(circle at 50% 45%,#000,transparent 70%);
+}
+
+.splash-center{
+  position:relative;
+  z-index:1;
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+
+.splash-logo{
+  position:relative;
+  width:104px;
+  height:104px;
+  margin-bottom:30px;
+  animation:splashPop .9s cubic-bezier(.34,1.56,.64,1) both;
+}
+
+.splash-ring{
+  position:absolute;
+  inset:-16px;
+  border-radius:50%;
+  background:conic-gradient(
+    from 0deg,
+    transparent 0 50%,
+    #536dfe,
+    #895cf6,
+    #2dd4bf,
+    transparent 96%
+  );
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px));
+  mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px));
+  animation:splashSpin 3s linear infinite;
+}
+
+.splash-logo-core{
+  position:relative;
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  border-radius:31px;
+  color:#fff;
+  font-size:50px;
+  font-weight:800;
+  background:linear-gradient(135deg,#536dfe,#895cf6);
+  box-shadow:
+    0 14px 40px rgba(83,109,254,.45),
+    inset 0 1px 0 rgba(255,255,255,.45);
+  animation:splashGlow 2.4s ease-in-out infinite alternate;
+}
+
+.splash-logo-core::after{
+  position:absolute;
+  inset:0;
+  content:"";
+  background:linear-gradient(
+    115deg,
+    transparent 35%,
+    rgba(255,255,255,.45) 50%,
+    transparent 65%
+  );
+  transform:translateX(-120%);
+  animation:splashShine 2.6s ease .9s infinite;
+}
+
+.splash-title{
+  display:flex;
+  margin:0;
+  font-size:clamp(36px,10vw,54px);
+  font-weight:800;
+  letter-spacing:-1.5px;
+}
+
+.splash-title span{
+  display:inline-block;
+  opacity:0;
+  transform:translateY(22px);
+  filter:blur(8px);
+  color:transparent;
+  background:linear-gradient(180deg,#fff,#b9c2ff);
+  -webkit-background-clip:text;
+  background-clip:text;
+  animation:splashLetter .7s cubic-bezier(.22,1,.36,1) forwards;
+  animation-delay:calc(.45s + var(--i) * .055s);
+}
+
+.splash-subtitle{
+  margin:10px 0 0;
+  color:rgba(210,216,255,.75);
+  font-size:15px;
+  font-weight:600;
+  letter-spacing:.03em;
+  opacity:0;
+  transform:translateY(10px);
+  animation:splashChip .8s cubic-bezier(.22,1,.36,1) 1.15s forwards;
+}
+
+.splash-greeting{
+  margin:24px 0 0;
+  padding:8px 16px;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:999px;
+  background:rgba(255,255,255,.07);
+  -webkit-backdrop-filter:blur(10px);
+  backdrop-filter:blur(10px);
+  font-size:14px;
+  font-weight:700;
+  opacity:0;
+  animation:splashFade .7s ease 1.45s forwards;
+}
+
+.splash-chips{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:8px;
+  margin-top:14px;
+}
+
+.splash-chip{
+  padding:6px 12px;
+  border:1px solid rgba(129,145,255,.25);
+  border-radius:999px;
+  color:#c9d0ff;
+  background:rgba(83,109,254,.16);
+  font-size:12px;
+  font-weight:700;
+  opacity:0;
+  transform:translateY(8px);
+  animation:splashChip .6s cubic-bezier(.22,1,.36,1) forwards;
+  animation-delay:calc(1.75s + var(--c) * .12s);
+}
+
+.splash-bottom{
+  position:relative;
+  z-index:1;
+  width:min(420px,100%);
+}
+
+.splash-status{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:10px;
+  color:rgba(210,216,255,.8);
+  font-size:13px;
+  font-weight:600;
+}
+
+.splash-bar{
+  height:6px;
+  overflow:hidden;
+  border-radius:999px;
+  background:rgba(255,255,255,.10);
+}
+
+.splash-bar-fill{
+  width:0;
+  height:100%;
+  border-radius:inherit;
+  background:linear-gradient(90deg,#536dfe,#895cf6,#2dd4bf);
+  box-shadow:0 0 14px rgba(137,92,246,.8);
+  transition:width .2s ease-out;
+}
+
+.splash-meta{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:14px;
+  color:rgba(210,216,255,.5);
+  font-size:11px;
+  font-weight:600;
+}
+
+.splash-hint{
+  margin:12px 0 0;
+  color:rgba(210,216,255,.38);
+  font-size:11px;
+  text-align:center;
+}
+
+@keyframes splashFloat{
+  from{transform:translate3d(0,0,0) scale(1)}
+  to{transform:translate3d(40px,-50px,0) scale(1.15)}
+}
+
+@keyframes splashSpin{to{transform:rotate(360deg)}}
+
+@keyframes splashPop{
+  from{opacity:0;transform:scale(.4) rotate(-12deg)}
+  to{opacity:1;transform:scale(1) rotate(0)}
+}
+
+@keyframes splashGlow{
+  from{box-shadow:0 14px 40px rgba(83,109,254,.45),inset 0 1px 0 rgba(255,255,255,.45)}
+  to{box-shadow:0 22px 64px rgba(137,92,246,.70),inset 0 1px 0 rgba(255,255,255,.45)}
+}
+
+@keyframes splashShine{
+  0%{transform:translateX(-120%)}
+  60%,100%{transform:translateX(120%)}
+}
+
+@keyframes splashLetter{
+  to{opacity:1;transform:none;filter:blur(0)}
+}
+
+@keyframes splashFade{to{opacity:1}}
+@keyframes splashChip{to{opacity:1;transform:none}}
+
+@keyframes splashSafety{
+  to{opacity:0;visibility:hidden;pointer-events:none}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .splash *{animation:none!important}
+
+  .splash-logo,
+  .splash-title span,
+  .splash-subtitle,
+  .splash-greeting,
+  .splash-chip{
+    opacity:1!important;
+    transform:none!important;
+    filter:none!important;
+  }
+}
+
 </style>
 </head>
 
-<body>
+<body class="splash-active">
+
+<div class="splash" id="splash" role="status" aria-live="polite">
+  <div class="splash-aurora"><span></span><span></span><span></span></div>
+  <div class="splash-grid"></div>
+
+  <div class="splash-center">
+    <div class="splash-logo">
+      <div class="splash-ring"></div>
+      <div class="splash-logo-core">✦</div>
+    </div>
+
+    <h1 class="splash-title" aria-label="StudySpace">
+      <span style="--i:0" aria-hidden="true">S</span><span style="--i:1" aria-hidden="true">t</span><span style="--i:2" aria-hidden="true">u</span><span style="--i:3" aria-hidden="true">d</span><span style="--i:4" aria-hidden="true">y</span><span style="--i:5" aria-hidden="true">S</span><span style="--i:6" aria-hidden="true">p</span><span style="--i:7" aria-hidden="true">a</span><span style="--i:8" aria-hidden="true">c</span><span style="--i:9" aria-hidden="true">e</span>
+    </h1>
+
+    <p class="splash-subtitle">Mon espace personnel</p>
+    <p class="splash-greeting" id="splashGreeting"></p>
+    <div class="splash-chips" id="splashChips"></div>
+  </div>
+
+  <div class="splash-bottom">
+    <div class="splash-status">
+      <span id="splashStatus">Démarrage de StudySpace…</span>
+      <span id="splashPercent">0%</span>
+    </div>
+
+    <div class="splash-bar"><div class="splash-bar-fill" id="splashBarFill"></div></div>
+
+    <div class="splash-meta">
+      <span id="splashVersion"></span>
+      <span id="splashDate"></span>
+    </div>
+
+    <p class="splash-hint">Touche l'écran pour passer</p>
+  </div>
+</div>
 
 <aside class="sidebar">
   <div class="logo">
@@ -5062,6 +5415,106 @@ if(window.matchMedia("(min-width:761px)").matches){
     });
   });
 }
+
+/* =========================================================
+   Écran de lancement — progression, messages et sortie
+   ========================================================= */
+
+(function setupSplash(){
+  const splash=document.getElementById("splash");
+  if(!splash)return;
+
+  const reduced=window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+  const duration=reduced?900:3000;
+
+  const plural=(count,word)=>`${count} ${word}${count>1?"s":""}`;
+
+  const subjectsCount=(data.subjects||[]).length;
+  const openTasks=(data.tasks||[]).filter(task=>!task.done).length;
+  const eventsCount=(data.events||[]).length;
+
+  const name=(data.profile&&data.profile.name)||"";
+  const hello=new Date().getHours()<18?"Bonjour":"Bonsoir";
+
+  document.getElementById("splashGreeting").textContent=
+    `${hello}${name?" "+name:""} 👋`;
+
+  document.getElementById("splashChips").innerHTML=[
+    `📚 ${plural(subjectsCount,"matière")}`,
+    `✅ ${plural(openTasks,"devoir")} à finir`,
+    `📅 ${plural(eventsCount,"événement")}`
+  ].map((text,index)=>`<span class="splash-chip" style="--c:${index}">${text}</span>`).join("");
+
+  const today=new Date().toLocaleDateString("fr-FR",{
+    weekday:"long",
+    day:"numeric",
+    month:"long"
+  });
+
+  document.getElementById("splashDate").textContent=
+    today.charAt(0).toUpperCase()+today.slice(1);
+
+  document.getElementById("splashVersion").textContent="Version "+VERSION;
+
+  const steps=[
+    {at:0,text:"Démarrage de StudySpace…"},
+    {at:25,text:"Chargement de tes cours…"},
+    {at:50,text:"Préparation de ton emploi du temps…"},
+    {at:75,text:"Récupération de tes devoirs…"},
+    {at:95,text:"Tout est prêt ✨"}
+  ];
+
+  const fill=document.getElementById("splashBarFill");
+  const percent=document.getElementById("splashPercent");
+  const status=document.getElementById("splashStatus");
+
+  let finished=false;
+  let startTime=null;
+  let frame=null;
+
+  function ease(t){
+    return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+  }
+
+  function leave(){
+    if(finished)return;
+    finished=true;
+
+    cancelAnimationFrame(frame);
+    splash.classList.add("leaving");
+    document.body.classList.remove("splash-active");
+
+    setTimeout(()=>splash.remove(),800);
+  }
+
+  function tick(now){
+    if(finished)return;
+    if(startTime===null)startTime=now;
+
+    const progress=Math.min(1,(now-startTime)/duration);
+    const value=Math.round(ease(progress)*100);
+
+    fill.style.width=value+"%";
+    percent.textContent=value+"%";
+
+    const step=[...steps].reverse().find(item=>value>=item.at);
+    if(step&&status.textContent!==step.text)status.textContent=step.text;
+
+    if(progress<1){
+      frame=requestAnimationFrame(tick);
+    }else{
+      setTimeout(leave,reduced?100:450);
+    }
+  }
+
+  frame=requestAnimationFrame(tick);
+
+  splash.addEventListener("click",leave);
+
+  document.addEventListener("keydown",event=>{
+    if(event.key==="Escape"||event.key==="Enter")leave();
+  });
+})();
 
 </script>
 
