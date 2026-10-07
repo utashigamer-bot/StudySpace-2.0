@@ -1935,6 +1935,9 @@ input,textarea,select{
 
 body.splash-active{overflow:hidden}
 
+html:has(body.splash-active),
+body.splash-active{background:#0c0b14}
+
 .splash{
   position:fixed;
   inset:0;
@@ -1952,6 +1955,18 @@ body.splash-active{overflow:hidden}
     transform .7s cubic-bezier(.4,0,.2,1),
     filter .7s ease;
   animation:splashSafety .6s ease 8s forwards;
+}
+
+.splash::before{
+  position:absolute;
+  top:0;
+  right:0;
+  left:0;
+  z-index:1;
+  height:calc(env(safe-area-inset-top) + 130px);
+  content:"";
+  background:linear-gradient(180deg,#0c0b14,rgba(12,11,20,0));
+  pointer-events:none;
 }
 
 .splash.leaving{
@@ -5432,7 +5447,7 @@ if(window.matchMedia("(min-width:761px)").matches){
 
   const themeMeta=document.querySelector('meta[name="theme-color"]');
   const previousThemeColor=themeMeta?themeMeta.content:null;
-  if(themeMeta)themeMeta.content="#1b1840";
+  if(themeMeta)themeMeta.content="#0c0b14";
 
   const plural=(count,word)=>`${count} ${word}${count>1?"s":""}`;
 
