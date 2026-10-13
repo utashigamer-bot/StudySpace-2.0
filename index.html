@@ -5541,6 +5541,239 @@ if(window.matchMedia("(min-width:761px)").matches){
 })();
 
 </script>
+<!-- ===================== STUDYSPACE : CONNEXION GOOGLE + SYNCHRO FIREBASE ===================== -->
+<style>
+.auth-overlay{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;padding:28px;background:radial-gradient(120% 90% at 50% 0%,#1b1840 0%,#0c0b14 62%);color:#eef2ff;text-align:center}
+.auth-overlay.show{display:flex}
+.auth-box{max-width:380px;width:100%}
+.auth-logo{width:84px;height:84px;margin:0 auto 22px;display:grid;place-items:center;border-radius:26px;font-size:42px;font-weight:800;color:#fff;background:linear-gradient(135deg,#536dfe,#895cf6);box-shadow:0 14px 40px rgba(83,109,254,.45)}
+.auth-box h1{margin:0 0 8px;font-size:34px;letter-spacing:-1px}
+.auth-box p{margin:0 0 26px;color:rgba(210,216,255,.75);font-size:15px}
+.auth-google{width:100%;display:flex;align-items:center;justify-content:center;gap:12px;padding:14px 18px;border-radius:14px;background:#fff;color:#1f2937;font-weight:700;font-size:15px}
+.auth-google svg{width:20px;height:20px}
+.auth-error{margin-top:16px;color:#ff9d9d;font-size:13px;min-height:18px}
+.sync-badge{position:fixed;top:calc(8px + env(safe-area-inset-top));right:10px;z-index:60;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;color:#fff;background:#18a878;opacity:.9;pointer-events:none;transition:opacity .4s}
+.sync-badge.saving{background:#ed9c28}
+.sync-badge.offline{background:#748096}
+</style>
 
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-box">
+    <div class="auth-logo">✦</div>
+    <h1>StudySpace</h1>
+    <p>Connecte-toi pour retrouver tes cours, devoirs et notes sur tous tes appareils.</p>
+    <button class="auth-google" id="googleSignInButton">
+      <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.9-6.1C.9 16.4 0 20.1 0 24s.9 7.6 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
+      Se connecter avec Google
+    </button>
+    <div class="auth-error" id="authError"></div>
+  </div>
+</div>
+<div class="sync-badge offline" id="syncBadge" style="display:none">Hors ligne</div>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getAuth,GoogleAuthProvider,signInWithPopup,signInWithRedirect,onAuthStateChanged,signOut}
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {initializeFirestore,persistentLocalCache,persistentMultipleTabManager,doc,setDoc,deleteDoc,onSnapshot}
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* ====== 1) COLLE ICI TON firebaseConfig ====== */
+const firebaseConfig = {
+  apiKey: "COLLE_ICI",
+  authDomain: "COLLE_ICI",
+  projectId: "COLLE_ICI",
+  storageBucket: "COLLE_ICI",
+  messagingSenderId: "COLLE_ICI",
+  appId: "COLLE_ICI"
+};
+/* ============================================ */
+
+const overlay=document.getElementById("authOverlay");
+const errorBox=document.getElementById("authError");
+const badge=document.getElementById("syncBadge");
+const signInButton=document.getElementById("googleSignInButton");
+
+if(firebaseConfig.apiKey==="COLLE_ICI"){
+  overlay.classList.add("show");
+  errorBox.textContent="Firebase n'est pas configuré : colle ton firebaseConfig dans le code.";
+  signInButton.disabled=true;
+  throw new Error("firebaseConfig manquant");
+}
+
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=initializeFirestore(app,{
+  localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})
+});
+
+const originalSet=Store.set.bind(Store);
+let userRef=null;
+let unsubscribe=null;
+let pushTimer=null;
+let lastSyncedJson="";
+let firstSnapshot=true;
+
+function showBadge(text,cls){
+  badge.style.display="block";
+  badge.className="sync-badge "+(cls||"");
+  badge.textContent=text;
+  badge.style.opacity="0.9";
+  clearTimeout(showBadge.t);
+  if(cls!=="offline"&&cls!=="saving"){
+    showBadge.t=setTimeout(()=>badge.style.opacity="0",1800);
+  }
+}
+
+function normalize(incoming){
+  const merged=Object.assign({},defaultData,incoming||{});
+  if(!merged.scheduleTemplates)merged.scheduleTemplates={A:[[],[],[],[],[],[],[]],B:[[],[],[],[],[],[],[]]};
+  if(merged.scheduleReference===undefined)merged.scheduleReference=null;
+  if(!merged.profile)merged.profile={name:"",className:""};
+  return merged;
+}
+
+function pushNow(){
+  if(!userRef)return;
+  const json=JSON.stringify(data);
+  if(json===lastSyncedJson)return;
+  lastSyncedJson=json;
+  showBadge("Synchro…","saving");
+  setDoc(userRef,{json,updatedAt:Date.now()})
+    .then(()=>showBadge("✓ Synchronisé"))
+    .catch(()=>showBadge("Hors ligne","offline"));
+}
+
+function schedulePush(){
+  clearTimeout(pushTimer);
+  pushTimer=setTimeout(pushNow,600);
+}
+
+/* Chaque sauvegarde locale de l'app déclenche aussi l'envoi vers Firebase */
+Store.set=function(key,value){
+  originalSet(key,value);
+  if(key==="studyspaceData")schedulePush();
+};
+
+function startSync(user){
+  userRef=doc(db,"users",user.uid);
+  firstSnapshot=true;
+
+  unsubscribe=onSnapshot(userRef,snapshot=>{
+    if(snapshot.metadata.hasPendingWrites)return;
+
+    if(!snapshot.exists()){
+      /* Premier lancement : on envoie les données locales actuelles */
+      lastSyncedJson="";
+      pushNow();
+      firstSnapshot=false;
+      return;
+    }
+
+    let remote;
+    try{remote=JSON.parse(snapshot.data().json);}catch{return;}
+
+    const remoteJson=JSON.stringify(normalize(remote));
+    if(remoteJson===JSON.stringify(data)){
+      lastSyncedJson=remoteJson;
+      firstSnapshot=false;
+      return;
+    }
+
+    data=normalize(remote);
+    lastSyncedJson=JSON.stringify(data);
+    originalSet("studyspaceData",data);
+
+    if(!data.subjects.some(s=>s.id===selectedSubjectId)){
+      selectedSubjectId=data.subjects[0]?.id||null;
+    }
+
+    const typing=document.activeElement&&document.activeElement.tagName==="TEXTAREA"&&!firstSnapshot;
+    if(!typing)renderAll();
+    firstSnapshot=false;
+    showBadge("✓ Mis à jour");
+  },()=>showBadge("Hors ligne","offline"));
+}
+
+function stopSync(){
+  if(unsubscribe)unsubscribe();
+  unsubscribe=null;
+  userRef=null;
+}
+
+/* Connexion */
+signInButton.addEventListener("click",async()=>{
+  errorBox.textContent="";
+  const provider=new GoogleAuthProvider();
+  try{
+    await signInWithPopup(auth,provider);
+  }catch(error){
+    if(error.code==="auth/popup-blocked"||error.code==="auth/operation-not-supported-in-this-environment"){
+      signInWithRedirect(auth,provider);
+    }else if(error.code==="auth/unauthorized-domain"){
+      errorBox.textContent="Domaine non autorisé : ajoute ton site dans Authentication > Paramètres > Domaines autorisés.";
+    }else if(error.code!=="auth/popup-closed-by-user"&&error.code!=="auth/cancelled-popup-request"){
+      errorBox.textContent="Connexion impossible ("+error.code+").";
+    }
+  }
+});
+
+/* Bouton de déconnexion dans Réglages > Profil */
+function addAccountCard(user){
+  const panel=document.querySelector('[data-settings-tab-panel="profile"] .settings-grid');
+  if(!panel||document.getElementById("accountCard"))return;
+
+  const card=document.createElement("div");
+  card.className="card card-padding";
+  card.id="accountCard";
+  card.innerHTML=`
+    <div class="section-title">Compte Google</div>
+    <p class="notes-meta" id="accountEmail"></p>
+    <p class="notes-meta">Tes données sont synchronisées en direct sur tous tes appareils.</p>
+    <br>
+    <button class="button button-danger" id="signOutButton">Se déconnecter</button>
+  `;
+  panel.appendChild(card);
+
+  document.getElementById("accountEmail").textContent=
+    "Connecté : "+(user.displayName?user.displayName+" · ":"")+(user.email||"");
+
+  document.getElementById("signOutButton").addEventListener("click",async()=>{
+    if(!confirm("Se déconnecter ?"))return;
+    clearTimeout(pushTimer);
+    pushNow();
+    await new Promise(r=>setTimeout(r,500));
+    stopSync();
+    await signOut(auth);
+    localStorage.removeItem("studyspaceData");
+    location.reload();
+  });
+}
+
+/* "Réinitialiser" efface aussi les données dans le cloud */
+document.getElementById("resetData").addEventListener("click",async event=>{
+  event.stopImmediatePropagation();
+  if(!confirm("Supprimer toutes les données (aussi sur tes autres appareils) ?"))return;
+  try{if(userRef)await deleteDoc(userRef);}catch{}
+  stopSync();
+  localStorage.removeItem("studyspaceData");
+  location.reload();
+},true);
+
+window.addEventListener("online",()=>{showBadge("✓ En ligne");schedulePush();});
+window.addEventListener("offline",()=>showBadge("Hors ligne","offline"));
+
+onAuthStateChanged(auth,user=>{
+  if(user){
+    overlay.classList.remove("show");
+    addAccountCard(user);
+    startSync(user);
+  }else{
+    stopSync();
+    overlay.classList.add("show");
+  }
+});
+</script>
+<!-- ===================== FIN CONNEXION GOOGLE + SYNCHRO ===================== -->
 </body>
 </html>
