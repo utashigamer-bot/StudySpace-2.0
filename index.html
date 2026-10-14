@@ -5826,5 +5826,16 @@ onAuthStateChanged(auth,user=>{
 })();
 </script>
 <!-- ===================== FIN CORRECTIF ===================== -->
+<!-- ===================== DÉSACTIVER LE CHANGEMENT DE PAGE PAR GLISSEMENT ===================== -->
+<script>
+document.addEventListener("touchend",function(event){
+  /* On laisse fonctionner les gestes des barres de menu */
+  if(event.target.closest&&event.target.closest(".mobile-menu,.menu-handle,.side-menu,.side-menu-handle"))return;
+
+  /* Ailleurs, on empêche le balayage de changer de page */
+  event.stopPropagation();
+},true);
+</script>
+<!-- ===================== FIN ===================== -->
 </body>
 </html>
