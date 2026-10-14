@@ -5775,5 +5775,56 @@ onAuthStateChanged(auth,user=>{
 });
 </script>
 <!-- ===================== FIN CONNEXION GOOGLE + SYNCHRO ===================== -->
+<!-- ===================== CORRECTIF : MENU PC + BOUTONS ACTIFS ===================== -->
+<style>
+/* Cache sur ordinateur les barres prévues uniquement pour le mobile */
+@media(min-width:761px){
+  .side-menu,
+  .side-menu-handle,
+  .menu-handle,
+  .mobile-menu{display:none!important}
+}
+</style>
+
+<script>
+/* Un seul bouton allumé dans la barre latérale (Notes, Pomodoro, Objectifs, Outils, Réglages) */
+(function(){
+  let currentTab="profile";
+
+  function refreshSidebar(){
+    document.querySelectorAll(".sidebar .nav-button").forEach(button=>{
+      const page=button.dataset.page;
+      const match=(button.getAttribute("onclick")||"").match(/setSettingsTab\('(\w+)'\)/);
+      let active;
+
+      if(page!=="settings"){
+        active=currentPage===page;
+      }else if(match){
+        active=currentPage==="settings"&&currentTab===match[1];
+      }else{
+        active=currentPage==="settings"&&(currentTab==="profile"||currentTab==="about");
+      }
+
+      button.classList.toggle("active",active);
+    });
+  }
+
+  const originalSetSettingsTab=setSettingsTab;
+  setSettingsTab=function(tab){
+    currentTab=tab;
+    originalSetSettingsTab(tab);
+    refreshSidebar();
+  };
+
+  const originalNavigate=navigate;
+  navigate=function(page){
+    originalNavigate(page);
+    refreshSidebar();
+  };
+
+  refreshSidebar();
+})();
+</script>
+<!-- ===================== FIN CORRECTIF ===================== -->
 </body>
 </html>
