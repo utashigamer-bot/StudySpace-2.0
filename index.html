@@ -5837,5 +5837,24 @@ document.addEventListener("touchend",function(event){
 },true);
 </script>
 <!-- ===================== FIN ===================== -->
+<!-- ===================== CACHER LA BARRE DE DÉFILEMENT ===================== -->
+<style>
+html,
+body,
+*{
+  scrollbar-width:none;      /* Firefox */
+  -ms-overflow-style:none;   /* anciens Edge/IE */
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+*::-webkit-scrollbar{
+  display:none;              /* Chrome, Safari, iPhone */
+  width:0;
+  height:0;
+  background:transparent;
+}
+</style>
+<!-- ===================== FIN ===================== -->
 </body>
 </html>
