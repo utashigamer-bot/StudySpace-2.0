@@ -5858,5 +5858,31 @@ correctSidebarActiveButton(button.dataset.page,currentSettingsTab);
 correctSidebarActiveButton(currentPage,currentSettingsTab);
 })();
 </script>
+<!-- Supprime définitivement les emojis parasites -->
+<style>
+.quicknotes-emoji-layer {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+</style>
+
+<script>
+(function removeQuickNotesEmojis() {
+    function removeEmojiLayers() {
+        document.querySelectorAll(".quicknotes-emoji-layer").forEach(layer => {
+            layer.remove();
+        });
+    }
+
+    removeEmojiLayers();
+
+    new MutationObserver(removeEmojiLayers).observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+})();
+</script>
 </body>
 </html>
