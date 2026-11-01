@@ -5775,5 +5775,88 @@ onAuthStateChanged(auth,user=>{
 });
 </script>
 <!-- ===================== FIN CONNEXION GOOGLE + SYNCHRO ===================== -->
+<!-- CORRECTION : un seul bouton actif dans le menu latéral -->
+<script>
+(function fixSettingsMenuAnimation(){
+const originalNavigate=navigate;
+const originalSetSettingsTab=setSettingsTab;
+let currentSettingsTab="profile";
+
+function correctSidebarActiveButton(page,settingsTab){
+const sidebarButtons=document.querySelectorAll(".sidebar .nav-button");
+
+sidebarButtons.forEach(button=>{
+button.classList.remove("active");
+});
+
+if(page!=="settings"){
+const pageButton=document.querySelector(
+`.sidebar .nav-button[data-page="${page}"]`
+);
+
+if(pageButton){
+pageButton.classList.add("active");
+}
+
+return;
+}
+
+const tabButton=document.querySelector(
+`.sidebar .nav-button[onclick*="setSettingsTab('${settingsTab}')"]`
+);
+
+if(tabButton){
+tabButton.classList.add("active");
+return;
+}
+
+const settingsButton=document.querySelector(
+`.sidebar-bottom .nav-button[data-page="settings"]`
+);
+
+if(settingsButton){
+settingsButton.classList.add("active");
+}
+}
+
+navigate=function(page){
+originalNavigate(page);
+correctSidebarActiveButton(page,currentSettingsTab);
+};
+
+setSettingsTab=function(tab){
+currentSettingsTab=tab;
+originalSetSettingsTab(tab);
+
+if(currentPage==="settings"){
+correctSidebarActiveButton("settings",tab);
+}
+};
+
+document.querySelectorAll("[data-settings-tab]").forEach(button=>{
+button.addEventListener("click",()=>{
+currentSettingsTab=button.dataset.settingsTab;
+correctSidebarActiveButton("settings",currentSettingsTab);
+});
+});
+
+document.querySelectorAll(".sidebar .nav-button[data-page]").forEach(button=>{
+button.addEventListener("click",()=>{
+const onclickValue=button.getAttribute("onclick")||"";
+const match=onclickValue.match(/setSettingsTab\(['"]([^'"]+)['"]\)/);
+
+if(match){
+currentSettingsTab=match[1];
+}
+
+setTimeout(()=>{
+correctSidebarActiveButton(button.dataset.page,currentSettingsTab);
+},0);
+});
+});
+
+correctSidebarActiveButton(currentPage,currentSettingsTab);
+})();
+</script>
 </body>
 </html>
