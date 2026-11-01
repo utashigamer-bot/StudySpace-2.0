@@ -5775,5 +5775,222 @@ onAuthStateChanged(auth,user=>{
 });
 </script>
 <!-- ===================== FIN CONNEXION GOOGLE + SYNCHRO ===================== -->
+<!-- ================= ANIMATION NOTES RAPIDES ================= -->
+<style>
+.quicknotes-emoji-layer{
+position:fixed;
+right:0;
+bottom:calc(75px + env(safe-area-inset-bottom));
+left:0;
+z-index:49;
+height:180px;
+overflow:visible;
+pointer-events:none;
+}
+
+.quicknotes-emoji{
+position:absolute;
+bottom:0;
+left:var(--emoji-x);
+font-size:var(--emoji-size);
+opacity:0;
+filter:drop-shadow(0 5px 8px rgba(0,0,0,.18));
+transform:translate(-50%,35px) scale(.2) rotate(0deg);
+animation:quickNotesEmojiFly var(--emoji-duration) cubic-bezier(.16,.75,.3,1) forwards;
+animation-delay:var(--emoji-delay);
+}
+
+.mobile-menu button.quicknotes-button-animation{
+animation:quickNotesButtonBounce .75s cubic-bezier(.22,1.45,.36,1) both;
+animation-delay:var(--button-delay);
+}
+
+.mobile-menu button.quicknotes-button-animation span{
+animation:quickNotesIconBounce .75s cubic-bezier(.22,1.45,.36,1) both;
+animation-delay:var(--button-delay);
+}
+
+.side-menu-track button.quicknotes-button-animation span{
+animation:quickNotesSideButtonBounce .75s cubic-bezier(.22,1.45,.36,1) both;
+animation-delay:var(--button-delay);
+}
+
+@keyframes quickNotesButtonBounce{
+0%{
+transform:translateY(0) scale(1);
+}
+30%{
+transform:translateY(-18px) scale(1.08) rotate(-3deg);
+}
+55%{
+transform:translateY(3px) scale(.94) rotate(2deg);
+}
+75%{
+transform:translateY(-6px) scale(1.03) rotate(-1deg);
+}
+100%{
+transform:translateY(0) scale(1) rotate(0);
+}
+}
+
+@keyframes quickNotesIconBounce{
+0%{
+transform:scale(1) rotate(0);
+filter:none;
+}
+35%{
+transform:scale(1.35) rotate(-10deg);
+filter:drop-shadow(0 0 10px color-mix(in srgb,var(--primary) 70%,transparent));
+}
+70%{
+transform:scale(.9) rotate(7deg);
+}
+100%{
+transform:scale(1) rotate(0);
+filter:none;
+}
+}
+
+@keyframes quickNotesSideButtonBounce{
+0%{
+transform:scale(1) rotate(0);
+}
+35%{
+transform:scale(1.28) rotate(-10deg);
+box-shadow:0 8px 20px color-mix(in srgb,var(--primary) 45%,transparent);
+}
+70%{
+transform:scale(.92) rotate(7deg);
+}
+100%{
+transform:scale(1) rotate(0);
+}
+}
+
+@keyframes quickNotesEmojiFly{
+0%{
+opacity:0;
+transform:translate(-50%,35px) scale(.2) rotate(0deg);
+}
+15%{
+opacity:1;
+}
+70%{
+opacity:1;
+}
+100%{
+opacity:0;
+transform:
+translate(
+calc(-50% + var(--emoji-drift)),
+calc(-1 * var(--emoji-height))
+)
+scale(1.25)
+rotate(var(--emoji-rotate));
+}
+}
+</style>
+
+<script>
+(function setupQuickNotesMenuAnimation(){
+const emojis=["📝","✨","📚","💡","⭐","✏️","📌","📖","🎉","💭"];
+let animationRunning=false;
+
+function createEmojiLayer(){
+const oldLayer=document.querySelector(".quicknotes-emoji-layer");
+if(oldLayer)oldLayer.remove();
+
+const layer=document.createElement("div");
+layer.className="quicknotes-emoji-layer";
+layer.setAttribute("aria-hidden","true");
+document.body.appendChild(layer);
+
+for(let index=0;index<24;index++){
+const emoji=document.createElement("span");
+const direction=Math.random()<.5?-1:1;
+
+emoji.className="quicknotes-emoji";
+emoji.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+
+emoji.style.setProperty(
+"--emoji-x",
+`${5+Math.random()*90}%`
+);
+emoji.style.setProperty(
+"--emoji-size",
+`${18+Math.random()*18}px`
+);
+emoji.style.setProperty(
+"--emoji-duration",
+`${900+Math.random()*750}ms`
+);
+emoji.style.setProperty(
+"--emoji-delay",
+`${Math.random()*350}ms`
+);
+emoji.style.setProperty(
+"--emoji-height",
+`${90+Math.random()*100}px`
+);
+emoji.style.setProperty(
+"--emoji-drift",
+`${direction*(15+Math.random()*55)}px`
+);
+emoji.style.setProperty(
+"--emoji-rotate",
+`${direction*(90+Math.random()*270)}deg`
+);
+
+layer.appendChild(emoji);
+}
+
+setTimeout(()=>layer.remove(),2300);
+}
+
+function animateBottomButtons(){
+const buttons=[
+...document.querySelectorAll(".mobile-menu button"),
+...document.querySelectorAll(".side-menu-track button")
+];
+
+buttons.forEach((button,index)=>{
+button.classList.remove("quicknotes-button-animation");
+button.style.setProperty("--button-delay",`${index*75}ms`);
+void button.offsetWidth;
+button.classList.add("quicknotes-button-animation");
+});
+
+setTimeout(()=>{
+buttons.forEach(button=>{
+button.classList.remove("quicknotes-button-animation");
+button.style.removeProperty("--button-delay");
+});
+},1600);
+}
+
+function playQuickNotesAnimation(){
+if(animationRunning)return;
+animationRunning=true;
+
+createEmojiLayer();
+animateBottomButtons();
+
+setTimeout(()=>{
+animationRunning=false;
+},1700);
+}
+
+document.addEventListener("click",event=>{
+const quickNotesButton=event.target.closest(
+'[onclick*="quicknotes"], [data-settings-tab="quicknotes"]'
+);
+
+if(!quickNotesButton)return;
+
+setTimeout(playQuickNotesAnimation,20);
+});
+})();
+</script>
+<!-- =============== FIN ANIMATION NOTES RAPIDES =============== -->
 </body>
 </html>
