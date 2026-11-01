@@ -5858,5 +5858,14 @@ correctSidebarActiveButton(button.dataset.page,currentSettingsTab);
 correctSidebarActiveButton(currentPage,currentSettingsTab);
 })();
 </script>
+<!-- CORRECTION : masquer le menu mobile latéral sur ordinateur -->
+<style>
+@media (min-width: 761px) {
+    .side-menu,
+    .side-menu-handle {
+        display: none !important;
+    }
+}
+</style>
 </body>
 </html>
