@@ -5867,1062 +5867,1667 @@ correctSidebarActiveButton(currentPage,currentSettingsTab);
     }
 }
 </style>
-<!-- ===================== AJOUT : ESPACE ADMINISTRATEUR FIREBASE ===================== -->
+<!-- ===================== ESPACE ADMINISTRATEUR LOCAL + FIRESTORE ===================== -->
 <style>
-.admin-login-card{
-max-width:560px;
-margin:20px auto;
-animation:pageAppear .2s ease-out both;
+.admin-panel{
+    animation:pageAppear .2s ease-out both;
+}
+
+.admin-login{
+    max-width:560px;
+    margin:20px auto;
+    text-align:center;
 }
 
 .admin-lock-icon{
-width:72px;
-height:72px;
-display:grid;
-place-items:center;
-margin:0 auto 18px;
-border-radius:22px;
-color:#fff;
-font-size:32px;
-background:linear-gradient(135deg,#536dfe,#895cf6);
-box-shadow:
-0 12px 30px rgba(83,109,254,.25),
-inset 0 1px 0 rgba(255,255,255,.4);
+    width:76px;
+    height:76px;
+    display:grid;
+    place-items:center;
+    margin:0 auto 18px;
+    border-radius:23px;
+    color:#fff;
+    font-size:34px;
+    background:linear-gradient(135deg,#536dfe,#895cf6);
+    box-shadow:0 12px 30px rgba(83,109,254,.25);
 }
 
-.admin-login-title{
-margin:0 0 7px;
-font-size:24px;
-text-align:center;
+.admin-login h2{
+    margin:0 0 8px;
+    font-size:25px;
 }
 
-.admin-login-subtitle{
-margin:0 0 22px;
-color:var(--muted);
-font-size:14px;
-line-height:1.6;
-text-align:center;
+.admin-login p{
+    margin:0 0 22px;
+    color:var(--muted);
+    line-height:1.6;
 }
 
 .admin-code-row{
-display:grid;
-grid-template-columns:1fr auto;
-gap:9px;
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:9px;
 }
 
 .admin-message{
-min-height:20px;
-margin-top:12px;
-color:var(--muted);
-font-size:13px;
-text-align:center;
+    min-height:20px;
+    margin-top:12px;
+    color:var(--muted);
+    font-size:13px;
 }
 
 .admin-message.error{color:var(--danger)}
 .admin-message.success{color:var(--success)}
 
-.admin-workspace{
-display:none;
-animation:pageAppear .2s ease-out both;
+.admin-space{display:none}
+.admin-space.show{display:block}
+
+.admin-header{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:16px;
+    margin-bottom:20px;
 }
 
-.admin-workspace.show{display:block}
-
-.admin-workspace-header{
-display:flex;
-align-items:flex-start;
-justify-content:space-between;
-gap:18px;
-margin-bottom:22px;
+.admin-header h2{
+    margin:0;
+    font-size:27px;
 }
 
-.admin-workspace-title{
-margin:0;
-font-size:25px;
+.admin-header p{
+    margin:6px 0 0;
+    color:var(--muted);
+    font-size:13px;
 }
 
-.admin-workspace-subtitle{
-margin-top:6px;
-color:var(--muted);
-font-size:13px;
+.admin-navigation{
+    display:flex;
+    gap:8px;
+    margin-bottom:20px;
+    overflow-x:auto;
+    padding-bottom:4px;
 }
 
-.admin-storage-card{
-margin-bottom:20px;
+.admin-navigation .button{
+    flex:0 0 auto;
 }
 
-.admin-storage-head{
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:12px;
-margin-bottom:11px;
+.admin-section{display:none}
+.admin-section.active{
+    display:block;
+    animation:pageAppear .2s ease-out both;
 }
 
-.admin-storage-label{
-font-size:13px;
-font-weight:800;
+.admin-stats{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+    margin-bottom:20px;
 }
 
-.admin-storage-value{
-color:var(--muted);
-font-size:12px;
-font-weight:700;
+.admin-stat{
+    padding:20px;
 }
 
-.admin-storage-track{
-height:10px;
-overflow:hidden;
-border-radius:999px;
-background:var(--surface2);
+.admin-stat-label{
+    color:var(--muted);
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:.8px;
+    text-transform:uppercase;
 }
 
-.admin-storage-fill{
-width:0;
-height:100%;
-border-radius:inherit;
-background:linear-gradient(90deg,#536dfe,#895cf6,#2dd4bf);
-box-shadow:0 0 12px color-mix(in srgb,var(--primary) 45%,transparent);
-transition:width .35s ease;
+.admin-stat-value{
+    margin-top:7px;
+    font-size:28px;
+    font-weight:900;
 }
 
-.admin-storage-details{
-display:flex;
-justify-content:space-between;
-gap:12px;
-margin-top:8px;
-color:var(--muted);
-font-size:11px;
+.admin-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
 }
 
-.admin-drop-zone{
-position:relative;
-padding:38px 20px;
-margin-bottom:20px;
-border:2px dashed color-mix(in srgb,var(--primary) 40%,var(--border));
-border-radius:var(--radius);
-background:
-linear-gradient(
-135deg,
-color-mix(in srgb,var(--primary) 7%,var(--surface)),
-color-mix(in srgb,#895cf6 5%,var(--surface))
-);
-text-align:center;
-transition:
-transform .2s ease,
-border-color .2s ease,
-background .2s ease;
+.finance-form{
+    display:grid;
+    grid-template-columns:140px 1fr 150px 140px;
+    gap:9px;
+    margin-bottom:10px;
 }
 
-.admin-drop-zone:hover,
-.admin-drop-zone.dragging{
-transform:translateY(-2px);
-border-color:var(--primary);
-background:
-linear-gradient(
-135deg,
-color-mix(in srgb,var(--primary) 13%,var(--surface)),
-color-mix(in srgb,#895cf6 10%,var(--surface))
-);
+.finance-form-wide{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:9px;
+    margin-bottom:10px;
 }
 
-.admin-drop-icon{
-margin-bottom:10px;
-font-size:38px;
+.finance-summary{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;
+    margin-bottom:20px;
 }
 
-.admin-drop-title{
-font-size:17px;
-font-weight:800;
+.finance-summary-card{
+    padding:18px;
+    border:1px solid var(--border);
+    border-radius:14px;
+    background:var(--surface2);
 }
 
-.admin-drop-subtitle{
-margin:6px 0 17px;
-color:var(--muted);
-font-size:13px;
+.finance-summary-card.mother{
+    border-left:5px solid #895cf6;
 }
 
-.admin-upload-status{
-min-height:20px;
-margin-top:13px;
-color:var(--muted);
-font-size:12px;
+.finance-summary-card.father{
+    border-left:5px solid #536dfe;
 }
 
-.admin-upload-progress{
-display:none;
-height:7px;
-max-width:420px;
-margin:12px auto 0;
-overflow:hidden;
-border-radius:999px;
-background:var(--surface2);
+.finance-summary-card.total{
+    border-left:5px solid var(--success);
 }
 
-.admin-upload-progress.show{display:block}
-
-.admin-upload-progress-fill{
-width:0;
-height:100%;
-border-radius:inherit;
-background:var(--primary);
-transition:width .15s ease;
+.finance-summary-label{
+    color:var(--muted);
+    font-size:12px;
+    font-weight:800;
 }
 
-.admin-files-card{
-overflow:hidden;
+.finance-summary-value{
+    margin-top:6px;
+    font-size:25px;
+    font-weight:900;
 }
 
-.admin-files-header{
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:12px;
-padding:20px 22px;
-border-bottom:1px solid var(--border);
+.finance-bars{
+    margin-bottom:20px;
 }
 
-.admin-files-list{
-padding:10px;
+.finance-bar-row{
+    display:grid;
+    grid-template-columns:65px 1fr 90px;
+    align-items:center;
+    gap:10px;
+    margin-top:10px;
+    font-size:13px;
+    font-weight:700;
 }
 
-.admin-file{
-display:flex;
-align-items:center;
-gap:13px;
-padding:13px;
-border-radius:12px;
-transition:background .18s ease,transform .18s ease;
+.finance-bar-track{
+    height:12px;
+    overflow:hidden;
+    border-radius:999px;
+    background:var(--surface2);
 }
 
-.admin-file:hover{
-background:var(--surface2);
-transform:translateX(2px);
+.finance-bar-fill{
+    height:100%;
+    border-radius:inherit;
+    transition:width .3s ease;
 }
 
-.admin-file + .admin-file{
-border-top:1px solid var(--border);
+.finance-bar-fill.mother{
+    background:linear-gradient(90deg,#895cf6,#c05df5);
 }
 
-.admin-file-icon{
-width:44px;
-height:44px;
-display:grid;
-place-items:center;
-flex-shrink:0;
-border-radius:13px;
-color:var(--primary);
-background:color-mix(in srgb,var(--primary) 12%,var(--surface2));
-font-size:21px;
+.finance-bar-fill.father{
+    background:linear-gradient(90deg,#536dfe,#8191ff);
 }
 
-.admin-file-info{
-flex:1;
-min-width:0;
+.finance-table-wrapper{
+    width:100%;
+    overflow-x:auto;
 }
 
-.admin-file-name{
-overflow:hidden;
-font-weight:800;
-text-overflow:ellipsis;
-white-space:nowrap;
+.finance-table{
+    width:100%;
+    min-width:820px;
+    border-collapse:collapse;
 }
 
-.admin-file-meta{
-margin-top:4px;
-color:var(--muted);
-font-size:12px;
+.finance-table th,
+.finance-table td{
+    padding:12px 10px;
+    border-bottom:1px solid var(--border);
+    text-align:left;
+    font-size:13px;
 }
 
-.admin-file-actions{
-display:flex;
-gap:7px;
-flex-wrap:wrap;
+.finance-table th{
+    color:var(--muted);
+    font-size:11px;
+    text-transform:uppercase;
 }
 
-.admin-file-download{
-display:inline-flex;
-align-items:center;
-text-decoration:none;
+.finance-table td:last-child{
+    white-space:nowrap;
 }
 
-.admin-files-loading{
-padding:28px 15px;
-color:var(--muted);
-text-align:center;
+.finance-amount{
+    font-weight:900;
+}
+
+.parent-badge{
+    display:inline-flex;
+    padding:4px 10px;
+    border-radius:999px;
+    color:#fff;
+    font-size:11px;
+    font-weight:800;
+}
+
+.parent-badge.mother{background:#895cf6}
+.parent-badge.father{background:#536dfe}
+
+.admin-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.admin-list-item{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    padding:15px;
+    border:1px solid var(--border);
+    border-radius:13px;
+    background:var(--surface);
+}
+
+.admin-list-content{
+    flex:1;
+    min-width:0;
+}
+
+.admin-list-title{
+    font-weight:900;
+    overflow-wrap:anywhere;
+}
+
+.admin-list-meta{
+    margin-top:5px;
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.5;
+}
+
+.admin-list-actions{
+    display:flex;
+    gap:7px;
+    flex-wrap:wrap;
+}
+
+.admin-status{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    margin-top:8px;
+    padding:4px 9px;
+    border-radius:999px;
+    color:#fff;
+    background:var(--success);
+    font-size:11px;
+    font-weight:800;
+}
+
+.admin-status.inactive{
+    background:var(--muted);
+}
+
+.admin-form-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+
+.admin-note-text{
+    white-space:pre-wrap;
+    overflow-wrap:anywhere;
+}
+
+.admin-link{
+    color:var(--primary);
+    font-weight:800;
+    text-decoration:none;
+}
+
+.admin-link:hover{text-decoration:underline}
+
+.admin-maintenance-actions{
+    display:flex;
+    gap:9px;
+    flex-wrap:wrap;
+}
+
+@media(max-width:1000px){
+    .admin-stats{grid-template-columns:1fr 1fr}
+    .finance-form{grid-template-columns:1fr 1fr}
 }
 
 @media(max-width:760px){
-.admin-code-row{
-grid-template-columns:1fr;
-}
+    .admin-code-row,
+    .admin-grid,
+    .admin-form-grid,
+    .finance-form,
+    .finance-form-wide,
+    .finance-summary{
+        grid-template-columns:1fr;
+    }
 
-.admin-code-row .button{
-width:100%;
-}
+    .admin-header{
+        flex-direction:column;
+    }
 
-.admin-workspace-header{
-align-items:stretch;
-flex-direction:column;
-}
+    .admin-header .button{
+        width:100%;
+    }
 
-.admin-workspace-header .button{
-width:100%;
-}
+    .admin-stats{
+        grid-template-columns:1fr 1fr;
+        gap:10px;
+    }
 
-.admin-storage-details{
-flex-direction:column;
-gap:4px;
-}
+    .admin-stat{
+        padding:15px;
+    }
 
-.admin-file{
-align-items:flex-start;
-flex-wrap:wrap;
-}
+    .admin-stat-value{
+        font-size:23px;
+    }
 
-.admin-file-info{
-width:calc(100% - 60px);
-}
+    .admin-list-item{
+        flex-direction:column;
+    }
 
-.admin-file-actions{
-width:100%;
-padding-left:57px;
-}
+    .admin-list-actions{
+        width:100%;
+    }
 
-.admin-file-actions .button{
-flex:1;
-text-align:center;
-}
+    .admin-list-actions .button{
+        flex:1;
+    }
 
-.admin-drop-zone{
-padding:30px 15px;
-}
+    .finance-bar-row{
+        grid-template-columns:55px 1fr 75px;
+    }
 }
 </style>
 
-<script type="module">
-import {getApp, getApps} from
-"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+<script>
+(function setupNewAdminSpace(){
+"use strict";
 
-import {
-getAuth,
-getIdTokenResult
-} from
-"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-import {
-getFunctions,
-httpsCallable
-} from
-"https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
-
-import {
-getStorage,
-ref,
-listAll,
-getMetadata,
-getDownloadURL,
-uploadBytesResumable,
-deleteObject
-} from
-"https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-
-const ADMIN_MAX_STORAGE = 1024 * 1024 * 1024;
-const ADMIN_MAX_FILE_SIZE = 50 * 1024 * 1024;
+/*
+IMPORTANT :
+Ce code sert seulement à masquer l'espace dans l'interface.
+Il peut être retrouvé dans les outils de développement.
+*/
+const ADMIN_CODE = "020620";
 
 let adminUnlocked = false;
-let adminUsedBytes = 0;
+let activeAdminSection = "dashboard";
+let editingExpenseId = null;
 
-function adminEscapeHtml(value){
-return String(value ?? "")
-.replaceAll("&","&amp;")
-.replaceAll("<","&lt;")
-.replaceAll(">","&gt;")
-.replaceAll('"',"&quot;")
-.replaceAll("'","&#039;");
+function adminEscape(value){
+    return String(value ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
 }
 
-function adminFormatSize(bytes){
-if(!bytes)return "0 octet";
+function ensureAdminData(){
+    if(!data.adminData || typeof data.adminData !== "object"){
+        data.adminData = {};
+    }
 
-const units=["octets","Ko","Mo","Go","To"];
-const index=Math.min(
-Math.floor(Math.log(bytes)/Math.log(1024)),
-units.length-1
-);
+    if(!Array.isArray(data.adminData.expenses)){
+        data.adminData.expenses = [];
+    }
 
-const value=bytes/Math.pow(1024,index);
+    if(!Array.isArray(data.adminData.announcements)){
+        data.adminData.announcements = [];
+    }
 
-return `${value.toFixed(index===0?0:value>=10?1:2)} ${units[index]}`;
+    if(!Array.isArray(data.adminData.links)){
+        data.adminData.links = [];
+    }
+
+    if(!Array.isArray(data.adminData.notes)){
+        data.adminData.notes = [];
+    }
 }
 
-function adminFormatDate(value){
-if(!value)return "Date inconnue";
+function saveAdminData(){
+    ensureAdminData();
 
-return new Date(value).toLocaleDateString("fr-FR",{
-day:"numeric",
-month:"short",
-year:"numeric",
-hour:"2-digit",
-minute:"2-digit"
-});
+    /*
+    Cette sauvegarde utilise le même système que StudySpace.
+    Store.set déclenche également la synchronisation Firestore existante.
+    */
+    Store.set("studyspaceData",data);
+    renderAdminAll();
 }
 
-function adminFileIcon(contentType,name){
-const type=(contentType||"").toLowerCase();
-const fileName=(name||"").toLowerCase();
+function formatMoney(value){
+    return new Intl.NumberFormat("fr-FR",{
+        style:"currency",
+        currency:"EUR"
+    }).format(Number(value)||0);
+}
 
-if(type.startsWith("image/"))return "🖼️";
-if(type.includes("pdf")||fileName.endsWith(".pdf"))return "📕";
-if(type.includes("text")||fileName.endsWith(".txt"))return "📝";
-if(type.includes("word")||fileName.endsWith(".doc")||fileName.endsWith(".docx"))return "📘";
-if(type.includes("sheet")||fileName.endsWith(".xls")||fileName.endsWith(".xlsx"))return "📊";
-if(type.includes("presentation")||fileName.endsWith(".ppt")||fileName.endsWith(".pptx"))return "📙";
-if(type.startsWith("audio/"))return "🎵";
-if(type.startsWith("video/"))return "🎬";
-if(fileName.endsWith(".zip")||fileName.endsWith(".rar"))return "📦";
+function formatAdminDate(value){
+    if(!value)return "Date inconnue";
 
-return "📄";
+    const date = value.includes("T")
+        ? new Date(value)
+        : new Date(value+"T12:00:00");
+
+    return date.toLocaleDateString("fr-FR",{
+        day:"numeric",
+        month:"short",
+        year:"numeric"
+    });
+}
+
+function currentDateKey(){
+    const date=new Date();
+    const year=date.getFullYear();
+    const month=String(date.getMonth()+1).padStart(2,"0");
+    const day=String(date.getDate()).padStart(2,"0");
+    return `${year}-${month}-${day}`;
 }
 
 function createAdminInterface(){
-const settingsTabs=document.getElementById("settingsTabs");
-const settingsPage=document.getElementById("page-settings");
-
-if(!settingsTabs||!settingsPage)return;
-if(document.getElementById("adminSettingsTab"))return;
-
-const tabButton=document.createElement("button");
-tabButton.type="button";
-tabButton.id="adminSettingsTab";
-tabButton.className="button button-secondary";
-tabButton.dataset.settingsTab="admin";
-tabButton.textContent="🔐 Admin";
-
-settingsTabs.appendChild(tabButton);
-
-const panel=document.createElement("div");
-panel.className="settings-tab-panel";
-panel.dataset.settingsTabPanel="admin";
-panel.id="adminSettingsPanel";
-panel.style.display="none";
-
-panel.innerHTML=`
-<div class="admin-login-card card card-padding" id="adminLoginCard">
-<div class="admin-lock-icon">🔐</div>
-
-<h2 class="admin-login-title">Espace administrateur</h2>
-
-<p class="admin-login-subtitle">
-Cet espace est privé et synchronisé avec Firebase.
-Entre le code administrateur pour accéder aux fichiers.
-</p>
-
-<label class="label" for="adminCodeInput">Code administrateur</label>
-
-<div class="admin-code-row">
-<input
-class="input"
-id="adminCodeInput"
-type="password"
-inputmode="numeric"
-autocomplete="off"
-maxlength="20"
-placeholder="Entre le code administrateur"
->
-<button class="button button-primary" id="adminUnlockButton">
-Déverrouiller
-</button>
-</div>
-
-<div class="admin-message" id="adminLoginMessage"></div>
-</div>
-
-<div class="admin-workspace" id="adminWorkspace">
-<div class="admin-workspace-header">
-<div>
-<h2 class="admin-workspace-title">🔐 Espace administrateur</h2>
-<div class="admin-workspace-subtitle">
-Fichiers privés synchronisés avec ton compte Google.
-</div>
-</div>
-
-<button class="button button-danger" id="adminLockButton">
-Verrouiller
-</button>
-</div>
-
-<div class="card card-padding admin-storage-card">
-<div class="admin-storage-head">
-<span class="admin-storage-label">Stockage utilisé</span>
-<span class="admin-storage-value" id="adminStorageValue">Calcul en cours…</span>
-</div>
-
-<div
-class="admin-storage-track"
-role="progressbar"
-aria-label="Stockage administrateur utilisé"
-aria-valuemin="0"
-aria-valuemax="100"
-aria-valuenow="0"
-id="adminStorageTrack"
->
-<div class="admin-storage-fill" id="adminStorageFill"></div>
-</div>
-
-<div class="admin-storage-details">
-<span id="adminStoragePercentage">0 % utilisé</span>
-<span>Limite affichée : ${adminFormatSize(ADMIN_MAX_STORAGE)}</span>
-</div>
-</div>
-
-<div class="admin-drop-zone" id="adminDropZone">
-<div class="admin-drop-icon">☁️</div>
-<div class="admin-drop-title">Dépose tes fichiers ici</div>
-<div class="admin-drop-subtitle">
-Documents, blocs-notes, PDF, images et autres fichiers — 50 Mo maximum par fichier.
-</div>
-
-<button class="button button-primary" id="adminChooseFileButton">
-+ Choisir des fichiers
-</button>
-
-<input type="file" id="adminFileInput" multiple hidden>
-
-<div class="admin-upload-progress" id="adminUploadProgress">
-<div class="admin-upload-progress-fill" id="adminUploadProgressFill"></div>
-</div>
-
-<div class="admin-upload-status" id="adminUploadStatus"></div>
-</div>
-
-<div class="card admin-files-card">
-<div class="admin-files-header">
-<div class="section-title" style="margin:0">Mes fichiers</div>
-
-<button class="button button-secondary" id="adminRefreshFilesButton">
-Actualiser
-</button>
-</div>
-
-<div class="admin-files-list" id="adminFilesList">
-<div class="admin-files-loading">
-Déverrouille l’espace pour afficher les fichiers.
-</div>
-</div>
-</div>
-</div>
-`;
-
-settingsPage.appendChild(panel);
-
-tabButton.addEventListener("click",()=>{
-setSettingsTab("admin");
-restoreAdminAccess();
-});
-
-document.getElementById("adminUnlockButton")
-.addEventListener("click",unlockAdminSpace);
-
-document.getElementById("adminCodeInput")
-.addEventListener("keydown",event=>{
-if(event.key==="Enter"){
-unlockAdminSpace();
-}
-});
-
-document.getElementById("adminLockButton")
-.addEventListener("click",lockAdminSpace);
-
-document.getElementById("adminChooseFileButton")
-.addEventListener("click",()=>{
-document.getElementById("adminFileInput").click();
-});
-
-document.getElementById("adminFileInput")
-.addEventListener("change",event=>{
-uploadAdminFiles([...event.target.files]);
-event.target.value="";
-});
-
-document.getElementById("adminRefreshFilesButton")
-.addEventListener("click",loadAdminFiles);
-
-setupAdminDropZone();
-}
-
-function getAdminFirebase(){
-if(!getApps().length){
-throw new Error("Firebase n’est pas encore initialisé.");
-}
-
-const app=getApp();
-
-return{
-app,
-auth:getAuth(app),
-functions:getFunctions(app,"us-central1"),
-storage:getStorage(app)
-};
-}
-
-function setAdminMessage(message,type=""){
-const element=document.getElementById("adminLoginMessage");
-if(!element)return;
-
-element.textContent=message;
-element.className="admin-message"+(type?" "+type:"");
-}
-
-function setAdminUploadStatus(message){
-const element=document.getElementById("adminUploadStatus");
-if(element)element.textContent=message;
-}
-
-function showAdminWorkspace(){
-adminUnlocked=true;
-
-document.getElementById("adminLoginCard").style.display="none";
-document.getElementById("adminWorkspace").classList.add("show");
-
-loadAdminFiles();
-}
-
-function hideAdminWorkspace(){
-adminUnlocked=false;
-
-document.getElementById("adminWorkspace").classList.remove("show");
-document.getElementById("adminLoginCard").style.display="block";
-document.getElementById("adminCodeInput").value="";
-setAdminMessage("");
-}
-
-async function restoreAdminAccess(){
-try{
-const {auth}=getAdminFirebase();
-const user=auth.currentUser;
-
-if(!user){
-hideAdminWorkspace();
-setAdminMessage("Connecte-toi d’abord avec ton compte Google.","error");
-return;
-}
-
-const token=await getIdTokenResult(user);
-const adminUntil=Number(token.claims.adminUntil||0);
-
-if(adminUntil>Date.now()){
-showAdminWorkspace();
-}else{
-hideAdminWorkspace();
-}
-}catch(error){
-console.error(error);
-hideAdminWorkspace();
-}
-}
-
-async function unlockAdminSpace(){
-const input=document.getElementById("adminCodeInput");
-const button=document.getElementById("adminUnlockButton");
-const code=input.value.trim();
-
-if(!code){
-setAdminMessage("Entre le code administrateur.","error");
-input.focus();
-return;
-}
-
-button.disabled=true;
-button.textContent="Vérification…";
-setAdminMessage("Vérification sécurisée du code…");
-
-try{
-const {auth,functions}=getAdminFirebase();
-
-if(!auth.currentUser){
-throw new Error("Tu dois être connecté avec Google.");
-}
-
-const verifyAdminCode=httpsCallable(functions,"verifyAdminCode");
-const result=await verifyAdminCode({code});
-
-if(!result.data?.ok){
-throw new Error("Code incorrect.");
-}
-
-await auth.currentUser.getIdToken(true);
-
-setAdminMessage("Accès autorisé.","success");
-showAdminWorkspace();
-}catch(error){
-console.error(error);
-
-const message=
-error.code==="functions/permission-denied"
-?"Code administrateur incorrect."
-:error.code==="functions/unauthenticated"
-?"Tu dois être connecté avec Google."
-:error.message||"Impossible de vérifier le code.";
-
-setAdminMessage(message,"error");
-input.select();
-}finally{
-button.disabled=false;
-button.textContent="Déverrouiller";
-}
-}
-
-async function lockAdminSpace(){
-const button=document.getElementById("adminLockButton");
-
-button.disabled=true;
-button.textContent="Verrouillage…";
-
-try{
-const {auth,functions}=getAdminFirebase();
-const revokeAdminAccess=httpsCallable(functions,"revokeAdminAccess");
-
-await revokeAdminAccess();
-
-if(auth.currentUser){
-await auth.currentUser.getIdToken(true);
-}
-}catch(error){
-console.error(error);
-}finally{
-hideAdminWorkspace();
-button.disabled=false;
-button.textContent="Verrouiller";
-}
-}
-
-function setupAdminDropZone(){
-const zone=document.getElementById("adminDropZone");
-
-["dragenter","dragover"].forEach(eventName=>{
-zone.addEventListener(eventName,event=>{
-event.preventDefault();
-
-if(!adminUnlocked)return;
-zone.classList.add("dragging");
-});
-});
-
-["dragleave","drop"].forEach(eventName=>{
-zone.addEventListener(eventName,event=>{
-event.preventDefault();
-zone.classList.remove("dragging");
-});
-});
-
-zone.addEventListener("drop",event=>{
-if(!adminUnlocked)return;
-
-const files=[...event.dataTransfer.files];
-
-if(files.length){
-uploadAdminFiles(files);
-}
-});
-}
-
-async function uploadAdminFiles(files){
-if(!adminUnlocked||!files.length)return;
-
-const {auth,storage}=getAdminFirebase();
-const user=auth.currentUser;
-
-if(!user){
-setAdminUploadStatus("Connexion Google requise.");
-return;
-}
-
-const validFiles=[];
-
-for(const file of files){
-if(file.size>ADMIN_MAX_FILE_SIZE){
-setAdminUploadStatus(
-`Le fichier « ${file.name} » dépasse la limite de 50 Mo.`
-);
-continue;
-}
-
-validFiles.push(file);
-}
-
-if(!validFiles.length)return;
-
-const totalNewSize=validFiles.reduce((sum,file)=>sum+file.size,0);
-
-if(adminUsedBytes+totalNewSize>ADMIN_MAX_STORAGE){
-setAdminUploadStatus(
-"Le dépôt dépasserait la limite de stockage affichée."
-);
-return;
-}
-
-const progressBox=document.getElementById("adminUploadProgress");
-const progressFill=document.getElementById("adminUploadProgressFill");
-
-progressBox.classList.add("show");
-progressFill.style.width="0%";
-
-try{
-for(let index=0;index<validFiles.length;index++){
-const file=validFiles[index];
-
-setAdminUploadStatus(
-`Envoi de « ${file.name} » — ${index+1}/${validFiles.length}`
-);
-
-await uploadSingleAdminFile(
-storage,
-user.uid,
-file,
-progress=>{
-const completedPart=index/validFiles.length;
-const currentPart=progress/validFiles.length;
-const totalProgress=(completedPart+currentPart)*100;
-
-progressFill.style.width=`${totalProgress}%`;
-}
-);
-}
-
-progressFill.style.width="100%";
-setAdminUploadStatus(
-`${validFiles.length} fichier${validFiles.length>1?"s":""} ajouté${validFiles.length>1?"s":""}.`
-);
-
-await loadAdminFiles();
-}catch(error){
-console.error(error);
-
-setAdminUploadStatus(
-error.code==="storage/unauthorized"
-?"Accès expiré. Entre de nouveau le code administrateur."
-:"Impossible d’envoyer le fichier."
-);
-
-if(error.code==="storage/unauthorized"){
-hideAdminWorkspace();
-}
-}finally{
-setTimeout(()=>{
-progressBox.classList.remove("show");
-progressFill.style.width="0%";
-},1200);
-}
-}
-
-function uploadSingleAdminFile(storage,userId,file,onProgress){
-return new Promise((resolve,reject)=>{
-const cleanedName=file.name
-.replace(/[^\p{L}\p{N}._ -]/gu,"_")
-.slice(0,150);
-
-const uniqueName=
-`${Date.now()}-${crypto.randomUUID?.()||Math.random().toString(36).slice(2)}-${cleanedName}`;
-
-const fileReference=ref(
-storage,
-`admin-files/${userId}/${uniqueName}`
-);
-
-const uploadTask=uploadBytesResumable(
-fileReference,
-file,
-{
-contentType:file.type||"application/octet-stream",
-customMetadata:{
-originalName:file.name
-}
-}
-);
-
-uploadTask.on(
-"state_changed",
-snapshot=>{
-const progress=snapshot.totalBytes
-?snapshot.bytesTransferred/snapshot.totalBytes
-:0;
-
-onProgress(progress);
-},
-reject,
-resolve
-);
-});
-}
-
-async function loadAdminFiles(){
-if(!adminUnlocked)return;
-
-const list=document.getElementById("adminFilesList");
-list.innerHTML=`<div class="admin-files-loading">Chargement des fichiers…</div>`;
-
-try{
-const {auth,storage}=getAdminFirebase();
-const user=auth.currentUser;
-
-if(!user){
-throw new Error("Connexion requise.");
-}
-
-const folderReference=ref(storage,`admin-files/${user.uid}`);
-const result=await listAll(folderReference);
-
-const files=await Promise.all(
-result.items.map(async itemReference=>{
-const [metadata,url]=await Promise.all([
-getMetadata(itemReference),
-getDownloadURL(itemReference)
-]);
-
-return{
-reference:itemReference,
-fullPath:itemReference.fullPath,
-name:metadata.customMetadata?.originalName||itemReference.name,
-size:Number(metadata.size||0),
-contentType:metadata.contentType||"",
-createdAt:metadata.timeCreated||"",
-url
-};
-})
-);
-
-files.sort((a,b)=>{
-return new Date(b.createdAt)-new Date(a.createdAt);
-});
-
-adminUsedBytes=files.reduce((sum,file)=>sum+file.size,0);
-renderAdminStorage();
-renderAdminFiles(files);
-}catch(error){
-console.error(error);
-
-list.innerHTML=`
-<div class="empty">
-Impossible de charger les fichiers.
-</div>
-`;
-
-if(error.code==="storage/unauthorized"){
-hideAdminWorkspace();
-setAdminMessage(
-"L’accès a expiré. Entre de nouveau le code.",
-"error"
-);
-}
-}
+    const settingsTabs=document.getElementById("settingsTabs");
+    const settingsPage=document.getElementById("page-settings");
+
+    if(!settingsTabs || !settingsPage)return;
+    if(document.getElementById("newAdminTab"))return;
+
+    const tab=document.createElement("button");
+    tab.type="button";
+    tab.id="newAdminTab";
+    tab.className="button button-secondary";
+    tab.dataset.settingsTab="admin";
+    tab.textContent="🔐 Administration";
+    settingsTabs.appendChild(tab);
+
+    const panel=document.createElement("div");
+    panel.id="newAdminPanel";
+    panel.className="settings-tab-panel admin-panel";
+    panel.dataset.settingsTabPanel="admin";
+    panel.style.display="none";
+
+    panel.innerHTML=`
+        <div class="admin-login card card-padding" id="adminLogin">
+            <div class="admin-lock-icon">🔐</div>
+            <h2>Espace administrateur</h2>
+            <p>
+                Entre le code administrateur pour accéder aux finances,
+                annonces, liens et notes privées.
+            </p>
+
+            <label class="label" for="newAdminCode">Code administrateur</label>
+
+            <div class="admin-code-row">
+                <input
+                    class="input"
+                    id="newAdminCode"
+                    type="password"
+                    inputmode="numeric"
+                    autocomplete="off"
+                    maxlength="20"
+                    placeholder="Code administrateur"
+                >
+                <button class="button button-primary" id="newAdminUnlock">
+                    Déverrouiller
+                </button>
+            </div>
+
+            <div class="admin-message" id="newAdminMessage"></div>
+        </div>
+
+        <div class="admin-space" id="adminSpace">
+            <div class="admin-header">
+                <div>
+                    <h2>🔐 Espace administrateur</h2>
+                    <p>
+                        Les informations sont enregistrées avec les autres données
+                        StudySpace et synchronisées avec ton compte Google.
+                    </p>
+                </div>
+
+                <button class="button button-danger" id="newAdminLock">
+                    Verrouiller
+                </button>
+            </div>
+
+            <div class="admin-navigation" id="adminNavigation">
+                <button class="button button-primary" data-admin-section="dashboard">
+                    🏠 Tableau de bord
+                </button>
+                <button class="button button-secondary" data-admin-section="finances">
+                    💰 Finances
+                </button>
+                <button class="button button-secondary" data-admin-section="announcements">
+                    📢 Annonces
+                </button>
+                <button class="button button-secondary" data-admin-section="links">
+                    🔗 Liens
+                </button>
+                <button class="button button-secondary" data-admin-section="notes">
+                    📝 Notes privées
+                </button>
+                <button class="button button-secondary" data-admin-section="maintenance">
+                    🛠️ Maintenance
+                </button>
+            </div>
+
+            <section class="admin-section active" data-admin-section-panel="dashboard">
+                <div class="admin-stats">
+                    <div class="card admin-stat">
+                        <div class="admin-stat-label">Dépenses</div>
+                        <div class="admin-stat-value" id="adminStatExpenses">0</div>
+                    </div>
+
+                    <div class="card admin-stat">
+                        <div class="admin-stat-label">Total général</div>
+                        <div class="admin-stat-value" id="adminStatMoney">0 €</div>
+                    </div>
+
+                    <div class="card admin-stat">
+                        <div class="admin-stat-label">Annonces actives</div>
+                        <div class="admin-stat-value" id="adminStatAnnouncements">0</div>
+                    </div>
+
+                    <div class="card admin-stat">
+                        <div class="admin-stat-label">Notes privées</div>
+                        <div class="admin-stat-value" id="adminStatNotes">0</div>
+                    </div>
+                </div>
+
+                <div class="admin-grid">
+                    <div class="card card-padding">
+                        <div class="section-title">Résumé des finances</div>
+                        <div id="adminDashboardFinance"></div>
+                    </div>
+
+                    <div class="card card-padding">
+                        <div class="section-title">Informations</div>
+                        <div class="grammar-rule">
+                            <strong>Synchronisation</strong>
+                            <span>
+                                Les données administrateur utilisent la synchronisation
+                                Google déjà présente dans StudySpace.
+                            </span>
+                        </div>
+                        <div class="grammar-rule">
+                            <strong>Confidentialité</strong>
+                            <span>
+                                Elles sont associées à l’UID du compte Google connecté.
+                            </span>
+                        </div>
+                        <div class="grammar-rule">
+                            <strong>Conseil</strong>
+                            <span>
+                                Exporte régulièrement une sauvegarde depuis Maintenance.
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="admin-section" data-admin-section-panel="finances">
+                <div class="card card-padding" style="margin-bottom:20px">
+                    <div class="section-title">
+                        <span>Ajouter une dépense</span>
+                        <button
+                            class="button button-secondary"
+                            id="cancelExpenseEdit"
+                            style="display:none"
+                        >
+                            Annuler la modification
+                        </button>
+                    </div>
+
+                    <div class="finance-form">
+                        <div>
+                            <label class="label">Date</label>
+                            <input class="input" id="expenseDate" type="date">
+                        </div>
+
+                        <div>
+                            <label class="label">Dépense</label>
+                            <input
+                                class="input"
+                                id="expenseName"
+                                placeholder="Ex : Fournitures scolaires"
+                            >
+                        </div>
+
+                        <div>
+                            <label class="label">Catégorie</label>
+                            <select class="select" id="expenseCategory">
+                                <option>École</option>
+                                <option>Santé</option>
+                                <option>Vêtements</option>
+                                <option>Transport</option>
+                                <option>Loisirs</option>
+                                <option>Alimentation</option>
+                                <option>Sport</option>
+                                <option>Logement</option>
+                                <option>Autre</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="label">Payé par</label>
+                            <select class="select" id="expenseParent">
+                                <option value="mother">Mère</option>
+                                <option value="father">Père</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="finance-form-wide">
+                        <div>
+                            <label class="label">Montant</label>
+                            <input
+                                class="input"
+                                id="expenseAmount"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                inputmode="decimal"
+                                placeholder="0,00"
+                            >
+                        </div>
+
+                        <div>
+                            <label class="label">Note facultative</label>
+                            <input
+                                class="input"
+                                id="expenseNote"
+                                placeholder="Informations complémentaires"
+                            >
+                        </div>
+                    </div>
+
+                    <button class="button button-primary" id="saveExpense">
+                        Ajouter la dépense
+                    </button>
+                </div>
+
+                <div class="card card-padding">
+                    <div class="section-title">
+                        <span>Tableau des dépenses</span>
+                        <button class="button button-secondary" id="exportFinanceCsv">
+                            Exporter CSV
+                        </button>
+                    </div>
+
+                    <div class="finance-form">
+                        <div>
+                            <label class="label">Période</label>
+                            <select class="select" id="financeFilterType">
+                                <option value="month">Mois</option>
+                                <option value="year">Année</option>
+                                <option value="all">Toutes les dépenses</option>
+                            </select>
+                        </div>
+
+                        <div id="financeMonthContainer">
+                            <label class="label">Mois</label>
+                            <input class="input" id="financeMonth" type="month">
+                        </div>
+
+                        <div id="financeYearContainer" style="display:none">
+                            <label class="label">Année</label>
+                            <input
+                                class="input"
+                                id="financeYear"
+                                type="number"
+                                min="2000"
+                                max="2100"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="finance-summary">
+                        <div class="finance-summary-card mother">
+                            <div class="finance-summary-label">Payé par la mère</div>
+                            <div class="finance-summary-value" id="motherTotal">0 €</div>
+                        </div>
+
+                        <div class="finance-summary-card father">
+                            <div class="finance-summary-label">Payé par le père</div>
+                            <div class="finance-summary-value" id="fatherTotal">0 €</div>
+                        </div>
+
+                        <div class="finance-summary-card total">
+                            <div class="finance-summary-label">Total général</div>
+                            <div class="finance-summary-value" id="generalTotal">0 €</div>
+                        </div>
+                    </div>
+
+                    <div class="finance-bars">
+                        <div class="finance-bar-row">
+                            <span>Mère</span>
+                            <div class="finance-bar-track">
+                                <div class="finance-bar-fill mother" id="motherBar"></div>
+                            </div>
+                            <span id="motherPercent">0 %</span>
+                        </div>
+
+                        <div class="finance-bar-row">
+                            <span>Père</span>
+                            <div class="finance-bar-track">
+                                <div class="finance-bar-fill father" id="fatherBar"></div>
+                            </div>
+                            <span id="fatherPercent">0 %</span>
+                        </div>
+                    </div>
+
+                    <div class="finance-table-wrapper">
+                        <table class="finance-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Dépense</th>
+                                    <th>Catégorie</th>
+                                    <th>Payé par</th>
+                                    <th>Montant</th>
+                                    <th>Note</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="financeTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section class="admin-section" data-admin-section-panel="announcements">
+                <div class="admin-grid">
+                    <div class="card card-padding">
+                        <div class="section-title">Créer une annonce</div>
+
+                        <label class="label">Titre</label>
+                        <input
+                            class="input"
+                            id="announcementTitle"
+                            placeholder="Ex : Nouvelle fonctionnalité"
+                        >
+
+                        <br><br>
+
+                        <label class="label">Message</label>
+                        <textarea
+                            class="textarea textarea-compact"
+                            id="announcementText"
+                            placeholder="Texte de l’annonce"
+                        ></textarea>
+
+                        <br><br>
+
+                        <label class="label">Type</label>
+                        <select class="select" id="announcementType">
+                            <option>Information</option>
+                            <option>Nouveauté</option>
+                            <option>Important</option>
+                            <option>Maintenance</option>
+                        </select>
+
+                        <br><br>
+
+                        <button class="button button-primary" id="addAnnouncement">
+                            Ajouter l’annonce
+                        </button>
+                    </div>
+
+                    <div class="card card-padding">
+                        <div class="section-title">Annonces enregistrées</div>
+                        <div class="admin-list" id="announcementList"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="admin-section" data-admin-section-panel="links">
+                <div class="admin-grid">
+                    <div class="card card-padding">
+                        <div class="section-title">Ajouter un lien</div>
+
+                        <label class="label">Nom</label>
+                        <input
+                            class="input"
+                            id="adminLinkName"
+                            placeholder="Ex : Pronote"
+                        >
+
+                        <br><br>
+
+                        <label class="label">Adresse</label>
+                        <input
+                            class="input"
+                            id="adminLinkUrl"
+                            type="url"
+                            placeholder="https://..."
+                        >
+
+                        <br><br>
+
+                        <label class="label">Catégorie</label>
+                        <input
+                            class="input"
+                            id="adminLinkCategory"
+                            placeholder="Ex : École"
+                        >
+
+                        <br><br>
+
+                        <button class="button button-primary" id="addAdminLink">
+                            Ajouter le lien
+                        </button>
+                    </div>
+
+                    <div class="card card-padding">
+                        <div class="section-title">Liens utiles</div>
+                        <div class="admin-list" id="adminLinksList"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="admin-section" data-admin-section-panel="notes">
+                <div class="admin-grid">
+                    <div class="card card-padding">
+                        <div class="section-title">Nouvelle note privée</div>
+
+                        <label class="label">Titre</label>
+                        <input
+                            class="input"
+                            id="adminNoteTitle"
+                            placeholder="Ex : Idée pour la prochaine version"
+                        >
+
+                        <br><br>
+
+                        <label class="label">Contenu</label>
+                        <textarea
+                            class="textarea textarea-compact"
+                            id="adminNoteText"
+                            placeholder="Écris ta note..."
+                        ></textarea>
+
+                        <br><br>
+
+                        <button class="button button-primary" id="addAdminNote">
+                            Enregistrer la note
+                        </button>
+                    </div>
+
+                    <div class="card card-padding">
+                        <div class="section-title">Notes privées</div>
+                        <div class="admin-list" id="adminNotesList"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="admin-section" data-admin-section-panel="maintenance">
+                <div class="admin-grid">
+                    <div class="card card-padding">
+                        <div class="section-title">Sauvegarde administrateur</div>
+                        <p class="notes-meta">
+                            Exporte uniquement les finances, annonces, liens et notes privées.
+                        </p>
+
+                        <br>
+
+                        <div class="admin-maintenance-actions">
+                            <button class="button button-primary" id="exportAdminData">
+                                Exporter les données Admin
+                            </button>
+
+                            <button class="button button-secondary" id="exportAdminFinance">
+                                Exporter les finances CSV
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card card-padding">
+                        <div class="section-title">Zone dangereuse</div>
+                        <p class="notes-meta">
+                            Cette action supprime uniquement les informations administrateur.
+                            Les cours, devoirs et autres données restent conservés.
+                        </p>
+
+                        <br>
+
+                        <button class="button button-danger" id="clearAdminData">
+                            Supprimer les données Admin
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    `;
+
+    settingsPage.appendChild(panel);
+
+    document.getElementById("expenseDate").value=currentDateKey();
+
+    const now=new Date();
+    document.getElementById("financeMonth").value=
+        `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+    document.getElementById("financeYear").value=now.getFullYear();
+
+    attachAdminEvents();
 }
 
-function renderAdminStorage(){
-const percentage=Math.min(
-100,
-ADMIN_MAX_STORAGE
-?adminUsedBytes/ADMIN_MAX_STORAGE*100
-:0
-);
+function attachAdminEvents(){
+    document.getElementById("newAdminTab").addEventListener("click",()=>{
+        setSettingsTab("admin");
+    });
 
-document.getElementById("adminStorageValue").textContent=
-`${adminFormatSize(adminUsedBytes)} sur ${adminFormatSize(ADMIN_MAX_STORAGE)}`;
+    document.getElementById("newAdminUnlock").addEventListener("click",unlockAdmin);
 
-document.getElementById("adminStoragePercentage").textContent=
-`${percentage.toFixed(percentage<1?2:1)} % utilisé`;
+    document.getElementById("newAdminCode").addEventListener("keydown",event=>{
+        if(event.key==="Enter")unlockAdmin();
+    });
 
-document.getElementById("adminStorageFill").style.width=
-`${percentage}%`;
+    document.getElementById("newAdminLock").addEventListener("click",lockAdmin);
 
-document.getElementById("adminStorageTrack")
-.setAttribute("aria-valuenow",String(Math.round(percentage)));
+    document.querySelectorAll("[data-admin-section]").forEach(button=>{
+        button.addEventListener("click",()=>{
+            showAdminSection(button.dataset.adminSection);
+        });
+    });
+
+    document.getElementById("saveExpense").addEventListener("click",saveExpense);
+    document.getElementById("cancelExpenseEdit").addEventListener("click",resetExpenseForm);
+
+    document.getElementById("financeFilterType").addEventListener("change",()=>{
+        updateFinanceFilterControls();
+        renderFinances();
+    });
+
+    document.getElementById("financeMonth").addEventListener("change",renderFinances);
+    document.getElementById("financeYear").addEventListener("input",renderFinances);
+
+    document.getElementById("exportFinanceCsv").addEventListener("click",exportFinanceCsv);
+    document.getElementById("exportAdminFinance").addEventListener("click",exportFinanceCsv);
+
+    document.getElementById("addAnnouncement").addEventListener("click",addAnnouncement);
+    document.getElementById("addAdminLink").addEventListener("click",addAdminLink);
+    document.getElementById("addAdminNote").addEventListener("click",addAdminNote);
+
+    document.getElementById("exportAdminData").addEventListener("click",exportAdminData);
+    document.getElementById("clearAdminData").addEventListener("click",clearAdminData);
+
+    document.getElementById("financeTableBody").addEventListener("click",handleFinanceAction);
+    document.getElementById("announcementList").addEventListener("click",handleAnnouncementAction);
+    document.getElementById("adminLinksList").addEventListener("click",handleLinkAction);
+    document.getElementById("adminNotesList").addEventListener("click",handleNoteAction);
+
+    document.addEventListener("keydown",event=>{
+        if(event.key==="Escape" && adminUnlocked){
+            lockAdmin();
+        }
+    });
 }
 
-function renderAdminFiles(files){
-const list=document.getElementById("adminFilesList");
+function unlockAdmin(){
+    const input=document.getElementById("newAdminCode");
+    const message=document.getElementById("newAdminMessage");
 
-if(!files.length){
-list.innerHTML=`
-<div class="empty">
-Aucun fichier dans l’espace administrateur.
-</div>
-`;
-return;
+    if(input.value.trim()!==ADMIN_CODE){
+        message.textContent="Code administrateur incorrect.";
+        message.className="admin-message error";
+        input.select();
+        return;
+    }
+
+    adminUnlocked=true;
+    input.value="";
+
+    message.textContent="Accès autorisé.";
+    message.className="admin-message success";
+
+    document.getElementById("adminLogin").style.display="none";
+    document.getElementById("adminSpace").classList.add("show");
+
+    renderAdminAll();
 }
 
-list.innerHTML=files.map(file=>`
-<div class="admin-file">
-<div class="admin-file-icon">
-${adminFileIcon(file.contentType,file.name)}
-</div>
+function lockAdmin(){
+    adminUnlocked=false;
+    editingExpenseId=null;
 
-<div class="admin-file-info">
-<div class="admin-file-name" title="${adminEscapeHtml(file.name)}">
-${adminEscapeHtml(file.name)}
-</div>
+    document.getElementById("adminSpace").classList.remove("show");
+    document.getElementById("adminLogin").style.display="";
+    document.getElementById("newAdminCode").value="";
 
-<div class="admin-file-meta">
-${adminFormatSize(file.size)} · ${adminFormatDate(file.createdAt)}
-</div>
-</div>
+    const message=document.getElementById("newAdminMessage");
+    message.textContent="Espace verrouillé.";
+    message.className="admin-message";
 
-<div class="admin-file-actions">
-<a
-class="button button-secondary admin-file-download"
-href="${adminEscapeHtml(file.url)}"
-target="_blank"
-rel="noopener"
-download
->
-Télécharger
-</a>
-
-<button
-class="button button-danger admin-delete-file"
-data-path="${adminEscapeHtml(file.fullPath)}"
-data-name="${adminEscapeHtml(file.name)}"
->
-Supprimer
-</button>
-</div>
-</div>
-`).join("");
-
-list.querySelectorAll(".admin-delete-file").forEach(button=>{
-button.addEventListener("click",()=>{
-deleteAdminFile(button.dataset.path,button.dataset.name);
-});
-});
+    resetExpenseForm();
 }
 
-async function deleteAdminFile(fullPath,fileName){
-if(!adminUnlocked)return;
+function showAdminSection(section){
+    activeAdminSection=section;
 
-if(!confirm(`Supprimer « ${fileName} » ?`))return;
+    document.querySelectorAll("[data-admin-section]").forEach(button=>{
+        button.className=
+            "button "+
+            (button.dataset.adminSection===section
+                ?"button-primary"
+                :"button-secondary");
+    });
 
-try{
-const {storage}=getAdminFirebase();
+    document.querySelectorAll("[data-admin-section-panel]").forEach(panel=>{
+        panel.classList.toggle(
+            "active",
+            panel.dataset.adminSectionPanel===section
+        );
+    });
 
-await deleteObject(ref(storage,fullPath));
-await loadAdminFiles();
-setAdminUploadStatus(`« ${fileName} » a été supprimé.`);
-}catch(error){
-console.error(error);
-
-setAdminUploadStatus(
-error.code==="storage/unauthorized"
-?"Accès expiré. Entre de nouveau le code."
-:"Impossible de supprimer le fichier."
-);
-
-if(error.code==="storage/unauthorized"){
-hideAdminWorkspace();
-}
-}
+    if(section==="finances")renderFinances();
 }
 
+function getFilteredExpenses(){
+    ensureAdminData();
+
+    const type=document.getElementById("financeFilterType").value;
+
+    return [...data.adminData.expenses]
+        .filter(expense=>{
+            if(type==="all")return true;
+
+            if(type==="month"){
+                const month=document.getElementById("financeMonth").value;
+                return !month || expense.date.startsWith(month);
+            }
+
+            const year=String(document.getElementById("financeYear").value);
+            return !year || expense.date.startsWith(year+"-");
+        })
+        .sort((a,b)=>b.date.localeCompare(a.date));
+}
+
+function saveExpense(){
+    const date=document.getElementById("expenseDate").value;
+    const name=document.getElementById("expenseName").value.trim();
+    const amount=Number(document.getElementById("expenseAmount").value);
+
+    if(!date || !name || !Number.isFinite(amount) || amount<=0){
+        alert("Renseigne la date, le nom et un montant supérieur à 0.");
+        return;
+    }
+
+    const expense={
+        id:editingExpenseId || createId(),
+        date,
+        name,
+        category:document.getElementById("expenseCategory").value,
+        parent:document.getElementById("expenseParent").value,
+        amount:Math.round(amount*100)/100,
+        note:document.getElementById("expenseNote").value.trim(),
+        updatedAt:new Date().toISOString()
+    };
+
+    if(editingExpenseId){
+        const index=data.adminData.expenses.findIndex(item=>item.id===editingExpenseId);
+
+        if(index!==-1){
+            data.adminData.expenses[index]=expense;
+        }
+    }else{
+        data.adminData.expenses.push(expense);
+    }
+
+    resetExpenseForm();
+    saveAdminData();
+}
+
+function resetExpenseForm(){
+    editingExpenseId=null;
+
+    const dateInput=document.getElementById("expenseDate");
+    if(dateInput)dateInput.value=currentDateKey();
+
+    const nameInput=document.getElementById("expenseName");
+    if(nameInput)nameInput.value="";
+
+    const amountInput=document.getElementById("expenseAmount");
+    if(amountInput)amountInput.value="";
+
+    const noteInput=document.getElementById("expenseNote");
+    if(noteInput)noteInput.value="";
+
+    const categoryInput=document.getElementById("expenseCategory");
+    if(categoryInput)categoryInput.value="École";
+
+    const parentInput=document.getElementById("expenseParent");
+    if(parentInput)parentInput.value="mother";
+
+    const saveButton=document.getElementById("saveExpense");
+    if(saveButton)saveButton.textContent="Ajouter la dépense";
+
+    const cancelButton=document.getElementById("cancelExpenseEdit");
+    if(cancelButton)cancelButton.style.display="none";
+}
+
+function editExpense(id){
+    const expense=data.adminData.expenses.find(item=>item.id===id);
+    if(!expense)return;
+
+    editingExpenseId=id;
+
+    document.getElementById("expenseDate").value=expense.date;
+    document.getElementById("expenseName").value=expense.name;
+    document.getElementById("expenseCategory").value=expense.category;
+    document.getElementById("expenseParent").value=expense.parent;
+    document.getElementById("expenseAmount").value=expense.amount;
+    document.getElementById("expenseNote").value=expense.note||"";
+
+    document.getElementById("saveExpense").textContent="Enregistrer la modification";
+    document.getElementById("cancelExpenseEdit").style.display="inline-flex";
+
+    document.getElementById("expenseName").focus();
+    window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function deleteExpense(id){
+    const expense=data.adminData.expenses.find(item=>item.id===id);
+    if(!expense)return;
+
+    if(!confirm(`Supprimer la dépense « ${expense.name} » ?`))return;
+
+    data.adminData.expenses=
+        data.adminData.expenses.filter(item=>item.id!==id);
+
+    if(editingExpenseId===id)resetExpenseForm();
+
+    saveAdminData();
+}
+
+function handleFinanceAction(event){
+    const button=event.target.closest("[data-finance-action]");
+    if(!button)return;
+
+    const action=button.dataset.financeAction;
+    const id=button.dataset.id;
+
+    if(action==="edit")editExpense(id);
+    if(action==="delete")deleteExpense(id);
+}
+
+function updateFinanceFilterControls(){
+    const type=document.getElementById("financeFilterType").value;
+
+    document.getElementById("financeMonthContainer").style.display=
+        type==="month" ? "" : "none";
+
+    document.getElementById("financeYearContainer").style.display=
+        type==="year" ? "" : "none";
+}
+
+function renderFinances(){
+    if(!adminUnlocked)return;
+
+    const expenses=getFilteredExpenses();
+
+    const motherTotal=expenses
+        .filter(item=>item.parent==="mother")
+        .reduce((sum,item)=>sum+Number(item.amount||0),0);
+
+    const fatherTotal=expenses
+        .filter(item=>item.parent==="father")
+        .reduce((sum,item)=>sum+Number(item.amount||0),0);
+
+    const total=motherTotal+fatherTotal;
+
+    document.getElementById("motherTotal").textContent=formatMoney(motherTotal);
+    document.getElementById("fatherTotal").textContent=formatMoney(fatherTotal);
+    document.getElementById("generalTotal").textContent=formatMoney(total);
+
+    const motherPercent=total ? motherTotal/total*100 : 0;
+    const fatherPercent=total ? fatherTotal/total*100 : 0;
+
+    document.getElementById("motherBar").style.width=motherPercent+"%";
+    document.getElementById("fatherBar").style.width=fatherPercent+"%";
+
+    document.getElementById("motherPercent").textContent=motherPercent.toFixed(1)+" %";
+    document.getElementById("fatherPercent").textContent=fatherPercent.toFixed(1)+" %";
+
+    const body=document.getElementById("financeTableBody");
+
+    if(!expenses.length){
+        body.innerHTML=`
+            <tr>
+                <td colspan="7">
+                    <div class="empty">Aucune dépense pour cette période.</div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    body.innerHTML=expenses.map(expense=>`
+        <tr>
+            <td>${formatAdminDate(expense.date)}</td>
+            <td><strong>${adminEscape(expense.name)}</strong></td>
+            <td>${adminEscape(expense.category)}</td>
+            <td>
+                <span class="parent-badge ${expense.parent}">
+                    ${expense.parent==="mother" ? "Mère" : "Père"}
+                </span>
+            </td>
+            <td class="finance-amount">${formatMoney(expense.amount)}</td>
+            <td>${adminEscape(expense.note||"—")}</td>
+            <td>
+                <button
+                    class="button button-secondary"
+                    data-finance-action="edit"
+                    data-id="${expense.id}"
+                >
+                    Modifier
+                </button>
+                <button
+                    class="button button-danger"
+                    data-finance-action="delete"
+                    data-id="${expense.id}"
+                >
+                    Supprimer
+                </button>
+            </td>
+        </tr>
+    `).join("");
+}
+
+function addAnnouncement(){
+    const title=document.getElementById("announcementTitle").value.trim();
+    const text=document.getElementById("announcementText").value.trim();
+
+    if(!title || !text){
+        alert("Ajoute un titre et un message.");
+        return;
+    }
+
+    data.adminData.announcements.unshift({
+        id:createId(),
+        title,
+        text,
+        type:document.getElementById("announcementType").value,
+        active:true,
+        createdAt:new Date().toISOString()
+    });
+
+    document.getElementById("announcementTitle").value="";
+    document.getElementById("announcementText").value="";
+
+    saveAdminData();
+}
+
+function handleAnnouncementAction(event){
+    const button=event.target.closest("[data-announcement-action]");
+    if(!button)return;
+
+    const announcement=data.adminData.announcements
+        .find(item=>item.id===button.dataset.id);
+
+    if(!announcement)return;
+
+    if(button.dataset.announcementAction==="toggle"){
+        announcement.active=!announcement.active;
+        saveAdminData();
+    }
+
+    if(button.dataset.announcementAction==="delete"){
+        if(!confirm(`Supprimer l’annonce « ${announcement.title} » ?`))return;
+
+        data.adminData.announcements=
+            data.adminData.announcements.filter(item=>item.id!==announcement.id);
+
+        saveAdminData();
+    }
+}
+
+function renderAnnouncements(){
+    const container=document.getElementById("announcementList");
+
+    if(!data.adminData.announcements.length){
+        container.innerHTML=`<div class="empty">Aucune annonce.</div>`;
+        return;
+    }
+
+    container.innerHTML=data.adminData.announcements.map(item=>`
+        <div class="admin-list-item">
+            <div class="admin-list-content">
+                <div class="admin-list-title">
+                    ${adminEscape(item.title)}
+                </div>
+                <div class="admin-list-meta">
+                    ${adminEscape(item.type)} · ${formatAdminDate(item.createdAt)}
+                    <br>
+                    ${adminEscape(item.text)}
+                </div>
+                <span class="admin-status ${item.active?"":"inactive"}">
+                    ${item.active ? "Active" : "Désactivée"}
+                </span>
+            </div>
+
+            <div class="admin-list-actions">
+                <button
+                    class="button button-secondary"
+                    data-announcement-action="toggle"
+                    data-id="${item.id}"
+                >
+                    ${item.active ? "Désactiver" : "Activer"}
+                </button>
+                <button
+                    class="button button-danger"
+                    data-announcement-action="delete"
+                    data-id="${item.id}"
+                >
+                    Supprimer
+                </button>
+            </div>
+        </div>
+    `).join("");
+}
+
+function normalizeUrl(value){
+    const trimmed=value.trim();
+
+    if(/^https?:\/\//i.test(trimmed))return trimmed;
+    return "https://"+trimmed;
+}
+
+function addAdminLink(){
+    const name=document.getElementById("adminLinkName").value.trim();
+    const rawUrl=document.getElementById("adminLinkUrl").value.trim();
+    const category=document.getElementById("adminLinkCategory").value.trim();
+
+    if(!name || !rawUrl){
+        alert("Ajoute le nom et l’adresse du lien.");
+        return;
+    }
+
+    let url;
+
+    try{
+        url=new URL(normalizeUrl(rawUrl)).href;
+    }catch{
+        alert("L’adresse du lien n’est pas valide.");
+        return;
+    }
+
+    data.adminData.links.unshift({
+        id:createId(),
+        name,
+        url,
+        category:category||"Autre",
+        createdAt:new Date().toISOString()
+    });
+
+    document.getElementById("adminLinkName").value="";
+    document.getElementById("adminLinkUrl").value="";
+    document.getElementById("adminLinkCategory").value="";
+
+    saveAdminData();
+}
+
+function handleLinkAction(event){
+    const button=event.target.closest("[data-link-action]");
+    if(!button)return;
+
+    const link=data.adminData.links.find(item=>item.id===button.dataset.id);
+    if(!link)return;
+
+    if(button.dataset.linkAction==="delete"){
+        if(!confirm(`Supprimer le lien « ${link.name} » ?`))return;
+
+        data.adminData.links=
+            data.adminData.links.filter(item=>item.id!==link.id);
+
+        saveAdminData();
+    }
+}
+
+function renderAdminLinks(){
+    const container=document.getElementById("adminLinksList");
+
+    if(!data.adminData.links.length){
+        container.innerHTML=`<div class="empty">Aucun lien utile.</div>`;
+        return;
+    }
+
+    container.innerHTML=data.adminData.links.map(item=>`
+        <div class="admin-list-item">
+            <div class="admin-list-content">
+                <div class="admin-list-title">
+                    <a
+                        class="admin-link"
+                        href="${adminEscape(item.url)}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        ${adminEscape(item.name)}
+                    </a>
+                </div>
+                <div class="admin-list-meta">
+                    ${adminEscape(item.category)}<br>
+                    ${adminEscape(item.url)}
+                </div>
+            </div>
+
+            <div class="admin-list-actions">
+                <button
+                    class="button button-danger"
+                    data-link-action="delete"
+                    data-id="${item.id}"
+                >
+                    Supprimer
+                </button>
+            </div>
+        </div>
+    `).join("");
+}
+
+function addAdminNote(){
+    const title=document.getElementById("adminNoteTitle").value.trim();
+    const text=document.getElementById("adminNoteText").value.trim();
+
+    if(!title || !text){
+        alert("Ajoute un titre et le contenu de la note.");
+        return;
+    }
+
+    data.adminData.notes.unshift({
+        id:createId(),
+        title,
+        text,
+        createdAt:new Date().toISOString()
+    });
+
+    document.getElementById("adminNoteTitle").value="";
+    document.getElementById("adminNoteText").value="";
+
+    saveAdminData();
+}
+
+function handleNoteAction(event){
+    const button=event.target.closest("[data-note-action]");
+    if(!button)return;
+
+    const note=data.adminData.notes.find(item=>item.id===button.dataset.id);
+    if(!note)return;
+
+    if(button.dataset.noteAction==="delete"){
+        if(!confirm(`Supprimer la note « ${note.title} » ?`))return;
+
+        data.adminData.notes=
+            data.adminData.notes.filter(item=>item.id!==note.id);
+
+        saveAdminData();
+    }
+}
+
+function renderAdminNotes(){
+    const container=document.getElementById("adminNotesList");
+
+    if(!data.adminData.notes.length){
+        container.innerHTML=`<div class="empty">Aucune note privée.</div>`;
+        return;
+    }
+
+    container.innerHTML=data.adminData.notes.map(item=>`
+        <div class="admin-list-item">
+            <div class="admin-list-content">
+                <div class="admin-list-title">
+                    ${adminEscape(item.title)}
+                </div>
+                <div class="admin-list-meta">
+                    ${formatAdminDate(item.createdAt)}
+                </div>
+                <div class="admin-list-meta admin-note-text">
+                    ${adminEscape(item.text)}
+                </div>
+            </div>
+
+            <div class="admin-list-actions">
+                <button
+                    class="button button-danger"
+                    data-note-action="delete"
+                    data-id="${item.id}"
+                >
+                    Supprimer
+                </button>
+            </div>
+        </div>
+    `).join("");
+}
+
+function renderAdminDashboard(){
+    const expenses=data.adminData.expenses;
+    const total=expenses.reduce((sum,item)=>sum+Number(item.amount||0),0);
+
+    const activeAnnouncements=data.adminData.announcements
+        .filter(item=>item.active).length;
+
+    document.getElementById("adminStatExpenses").textContent=expenses.length;
+    document.getElementById("adminStatMoney").textContent=formatMoney(total);
+    document.getElementById("adminStatAnnouncements").textContent=activeAnnouncements;
+    document.getElementById("adminStatNotes").textContent=data.adminData.notes.length;
+
+    const motherTotal=expenses
+        .filter(item=>item.parent==="mother")
+        .reduce((sum,item)=>sum+Number(item.amount||0),0);
+
+    const fatherTotal=expenses
+        .filter(item=>item.parent==="father")
+        .reduce((sum,item)=>sum+Number(item.amount||0),0);
+
+    document.getElementById("adminDashboardFinance").innerHTML=`
+        <div class="grammar-rule">
+            <strong>Mère</strong>
+            <span>${formatMoney(motherTotal)}</span>
+        </div>
+        <div class="grammar-rule">
+            <strong>Père</strong>
+            <span>${formatMoney(fatherTotal)}</span>
+        </div>
+        <div class="grammar-rule">
+            <strong>Total depuis le début</strong>
+            <span>${formatMoney(total)}</span>
+        </div>
+    `;
+}
+
+function csvCell(value){
+    return `"${String(value??"").replaceAll('"','""')}"`;
+}
+
+function exportFinanceCsv(){
+    ensureAdminData();
+
+    const expenses=getFilteredExpenses();
+
+    const rows=[
+        ["Date","Dépense","Catégorie","Payé par","Montant","Note"],
+        ...expenses.map(item=>[
+            item.date,
+            item.name,
+            item.category,
+            item.parent==="mother" ? "Mère" : "Père",
+            Number(item.amount||0).toFixed(2).replace(".",","),
+            item.note||""
+        ])
+    ];
+
+    const csv="\uFEFF"+rows
+        .map(row=>row.map(csvCell).join(";"))
+        .join("\n");
+
+    downloadFile(
+        `studyspace-finances-${currentDateKey()}.csv`,
+        csv,
+        "text/csv;charset=utf-8"
+    );
+}
+
+function exportAdminData(){
+    ensureAdminData();
+
+    downloadFile(
+        `studyspace-admin-${currentDateKey()}.json`,
+        JSON.stringify(data.adminData,null,2),
+        "application/json"
+    );
+}
+
+function clearAdminData(){
+    const confirmation=prompt(
+        "Cette action supprimera toutes les finances, annonces, liens et notes Admin.\n\n"+
+        'Écris SUPPRIMER pour confirmer.'
+    );
+
+    if(confirmation!=="SUPPRIMER")return;
+
+    data.adminData={
+        expenses:[],
+        announcements:[],
+        links:[],
+        notes:[]
+    };
+
+    resetExpenseForm();
+    saveAdminData();
+    alert("Les données administrateur ont été supprimées.");
+}
+
+function renderAdminAll(){
+    if(!adminUnlocked)return;
+
+    ensureAdminData();
+    renderAdminDashboard();
+    renderFinances();
+    renderAnnouncements();
+    renderAdminLinks();
+    renderAdminNotes();
+    showAdminSection(activeAdminSection);
+}
+
+ensureAdminData();
 createAdminInterface();
+})();
 </script>
 <!-- ===================== FIN ESPACE ADMINISTRATEUR ===================== -->
 </body>
