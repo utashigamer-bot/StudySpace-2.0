@@ -1,32 +1,3 @@
-# ✅ Analyse du bug effectuée
-
-## 🔍 Diagnostic
-
-J'ai trouvé la cause exacte de ton problème :
-
-- Dans le menu latéral, les boutons **"Notes rapides"**, **"Pomodoro"**, **"Objectifs"** et **"Outils"** pointent tous vers `data-page="settings"` (la même page).
-- La fonction `navigate()` mettait la classe `active` (le surlignage bleu + halo + icône zoomée) sur **tous** les boutons ayant `data-page="settings"` en même temps, dès qu'on ouvrait l'un d'eux.
-- 👉 Résultat : en cliquant sur "Notes rapides", les boutons "Pomodoro", "Objectifs" et "Outils" restaient eux aussi surlignés avec leur halo actif (d'où l'effet "emoji qui apparaît derrière" : c'est le fond coloré de surlignage qui s'affichait derrière chaque emoji des boutons non concernés).
-
-## 🛠️ Correction apportée
-
-J'ai fait **4 petites modifications ciblées**, rien d'autre :
-
-1. Ajout d'un attribut `data-settings-tab-link` sur les 4 boutons concernés (Notes rapides, Pomodoro, Objectifs, Outils) pour les identifier précisément.
-2. Ajout d'une variable `currentSettingsTab` pour mémoriser l'onglet actif.
-3. Ajout d'une fonction `syncSettingsSidebarActive()` qui n'active **qu'un seul** bouton à la fois dans le menu.
-4. Modification de `navigate()` et `setSettingsTab()` pour utiliser cette nouvelle logique.
-
-J'ai vérifié que :
-- ✅ La navigation entre toutes les pages fonctionne toujours normalement
-- ✅ Le clic sur Notes rapides / Pomodoro / Objectifs / Outils n'active plus que le bon bouton
-- ✅ Le reste du code (Firebase, agenda, devoirs, pomodoro, outils...) n'a pas été touché
-
----
-
-## 📄 Code corrigé complet
-
-```html
 <!DOCTYPE html>
 <html lang="fr">
 <head>
