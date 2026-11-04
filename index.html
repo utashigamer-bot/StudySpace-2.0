@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>StudySpace V2.4</title>
+<title>StudySpace V2.8</title>
 
 <style>
 :root{
@@ -2671,6 +2671,7 @@ body.splash-active{background:#0c0b14}
     <button class="button button-secondary" data-settings-tab="quicknotes">📝 Notes</button>
     <button class="button button-secondary" data-settings-tab="objectives">🎯 Objectifs</button>
     <button class="button button-secondary" data-settings-tab="pomodoro">◷ Focus</button>
+    <button class="button button-secondary" data-settings-tab="advanced">⚙️ Avancé</button>
     <button class="button button-secondary" data-settings-tab="about">ℹ️ À propos</button>
   </div>
 
@@ -3014,6 +3015,65 @@ body.splash-active{background:#0c0b14}
     </div>
   </div>
 
+  <div class="settings-tab-panel" data-settings-tab-panel="advanced" style="display:none">
+    <div class="v28-stack">
+      <div class="card card-padding">
+        <div class="section-title">Apparence et personnalisation</div>
+        <p class="notes-meta">Ces préférences restent sur cet appareil et ne sont pas synchronisées.</p>
+
+        <label class="label" for="v28Theme">Thème</label>
+        <select class="input" id="v28Theme">
+          <option value="light">Clair (par défaut)</option>
+          <option value="dark">Sombre</option>
+          <option value="auto">Automatique (selon l’appareil)</option>
+        </select>
+
+        <label class="label" style="margin-top:14px">Palette</label>
+        <div class="v28-palettes" id="v28Palettes" role="group" aria-label="Palette de couleurs"></div>
+
+        <div class="v28-preview" aria-label="Aperçu">
+          <div class="pv-card">
+            <strong>Aperçu</strong>
+            <p class="notes-meta" style="margin:4px 0 0">Texte secondaire, carte et boutons avec la palette choisie.</p>
+            <div class="pv-actions">
+              <span class="button button-primary" style="pointer-events:none">Principal</span>
+              <span class="button button-secondary" style="pointer-events:none">Secondaire</span>
+            </div>
+          </div>
+        </div>
+
+        <label class="v28-check"><input type="checkbox" id="v28ReduceMotion"> Réduire les animations</label>
+        <label class="v28-check"><input type="checkbox" id="v28Holidays"> Afficher les jours fériés français dans l’agenda</label>
+        <div class="v28-row">
+          <button class="button button-secondary" id="v28ResetAppearance" type="button">Réinitialiser l’apparence</button>
+        </div>
+      </div>
+
+      <div class="card card-padding">
+        <div class="section-title">Effets saisonniers</div>
+        <p class="notes-meta">Très discrets, désactivés par défaut, sans effet sur les clics. Neutralisés si les animations sont réduites.</p>
+        <label class="v28-check"><input type="checkbox" id="v28Seasonal"> Activer les effets saisonniers</label>
+        <div class="v28-row">
+          <select class="input" id="v28SeasonMode" style="max-width:220px">
+            <option value="auto">Automatique (selon la date)</option>
+            <option value="manual">Choix manuel</option>
+          </select>
+          <select class="input" id="v28Season" style="max-width:180px">
+            <option value="spring">Printemps</option>
+            <option value="summer">Été</option>
+            <option value="autumn">Automne</option>
+            <option value="winter">Hiver</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card card-padding">
+        <div class="section-title">Comptes rendus des mises à jour</div>
+        <div class="v28-log" id="v28UpdateLog"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="settings-tab-panel" data-settings-tab-panel="about" style="display:none">
     <div class="settings-grid">
       <div class="card card-padding">
@@ -3021,7 +3081,7 @@ body.splash-active{background:#0c0b14}
 
         <div class="version-card">
           <span>Version</span>
-          <strong id="aboutVersion">V2.3</strong>
+          <strong id="aboutVersion">V2.8</strong>
         </div>
 
         <p class="notes-meta" style="margin-top:14px">
@@ -3082,6 +3142,137 @@ body.splash-active{background:#0c0b14}
 "use strict";
 
 const VERSION="2.8";
+
+/* ===== V2.8 — noyau : préférences visuelles locales, jours fériés, comptes rendus ===== */
+const V28_RELEASE_DATE="2026-11-04"; /* ← date de la V2.8, à modifier ici */
+
+const UPDATE_LOG=[
+  {
+    version:"2.8",
+    date:V28_RELEASE_DATE,
+    title:"Diagnostic, personnalisation et agenda enrichi",
+    features:[
+      "Centre de diagnostic dans l'espace administrateur (lecture seule, aucune écriture Firebase)",
+      "Personnalisation de l'apparence : thème, palettes, réduction des animations",
+      "Jours fériés français dans l'agenda et le calendrier des devoirs",
+      "Effets saisonniers facultatifs et très discrets",
+      "Section « Comptes rendus des mises à jour »"
+    ],
+    fixes:[
+      "Harmonisation et stabilisation de l'application (version affichée partout, export)"
+    ]
+  }
+];
+
+/* Préférences visuelles : uniquement sur cet appareil (jamais envoyées à Firestore) */
+const UIPrefs=(()=>{
+  const KEY="studyspaceAppearanceV28";
+  const THEMES=["","auto"];
+  const PALETTES=["original","blue","sage","violet","slate"];
+  const SEASONS=["spring","summer","autumn","winter"];
+  const DEFAULTS={theme:"",palette:"original",reduceMotion:false,holidays:true,
+    seasonal:false,seasonMode:"auto",season:"autumn"};
+  const clean=raw=>{
+    const r=raw&&typeof raw==="object"&&!Array.isArray(raw)?raw:{};
+    return{
+      theme:THEMES.includes(r.theme)?r.theme:DEFAULTS.theme,
+      palette:PALETTES.includes(r.palette)?r.palette:DEFAULTS.palette,
+      reduceMotion:typeof r.reduceMotion==="boolean"?r.reduceMotion:DEFAULTS.reduceMotion,
+      holidays:typeof r.holidays==="boolean"?r.holidays:DEFAULTS.holidays,
+      seasonal:typeof r.seasonal==="boolean"?r.seasonal:DEFAULTS.seasonal,
+      seasonMode:r.seasonMode==="manual"?"manual":"auto",
+      season:SEASONS.includes(r.season)?r.season:DEFAULTS.season
+    };
+  };
+  let cache=null;
+  const read=()=>{
+    let raw=null;
+    try{raw=JSON.parse(localStorage.getItem(KEY));}catch{}
+    return clean(raw);
+  };
+  return{
+    KEY,PALETTES,SEASONS,DEFAULTS,
+    get(){return cache||(cache=read());},
+    set(patch){
+      cache=clean(Object.assign({},this.get(),patch));
+      try{localStorage.setItem(KEY,JSON.stringify(cache));}catch{}
+      return cache;
+    },
+    reset(){
+      cache=clean(null);
+      try{localStorage.removeItem(KEY);}catch{}
+      return cache;
+    }
+  };
+})();
+
+/* Application du thème / palette / réduction des animations sur <html> */
+const Appearance={
+  media:window.matchMedia?window.matchMedia("(prefers-color-scheme: dark)"):null,
+  reducedMotion(){
+    const system=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    return Boolean(UIPrefs.get().reduceMotion||system);
+  },
+  apply(){
+    const prefs=UIPrefs.get();
+    const root=document.documentElement;
+    if(prefs.theme==="auto"){
+      root.dataset.theme=this.media&&this.media.matches?"dark":"light";
+    }
+    if(prefs.palette==="original")delete root.dataset.palette;
+    else root.dataset.palette=prefs.palette;
+    root.classList.toggle("reduce-motion",this.reducedMotion());
+  }
+};
+if(Appearance.media){
+  const onSchemeChange=()=>{if(UIPrefs.get().theme==="auto")Appearance.apply();};
+  if(Appearance.media.addEventListener)Appearance.media.addEventListener("change",onSchemeChange);
+}
+
+/* Jours fériés français : calculés à l'affichage, jamais enregistrés dans les données */
+const FrenchHolidays=(()=>{
+  const cache={};
+  const fixed=[
+    ["01-01","Jour de l’An"],["05-01","Fête du Travail"],["05-08","Victoire 1945"],
+    ["07-14","Fête nationale"],["08-15","Assomption"],["11-01","Toussaint"],
+    ["11-11","Armistice"],["12-25","Noël"]
+  ];
+  const movable=[[1,"Lundi de Pâques"],[39,"Ascension"],[50,"Lundi de Pentecôte"]];
+  function easter(year){ /* algorithme grégorien (Meeus/Jones/Butcher) */
+    const a=year%19,b=Math.floor(year/100),c=year%100;
+    const d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25);
+    const g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30;
+    const i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7;
+    const m=Math.floor((a+11*h+22*l)/451);
+    const month=Math.floor((h+l-7*m+114)/31);
+    const day=((h+l-7*m+114)%31)+1;
+    return new Date(year,month-1,day);
+  }
+  function build(year){
+    const map={};
+    fixed.forEach(([md,name])=>{map[year+"-"+md]=name;});
+    const base=easter(year);
+    movable.forEach(([offset,name])=>{
+      map[dateKey(new Date(year,base.getMonth(),base.getDate()+offset))]=name;
+    });
+    return map;
+  }
+  return{
+    easter,
+    /* nom du jour férié pour "AAAA-MM-JJ", ou null (aussi null si l'option est désactivée) */
+    name(key){
+      if(!UIPrefs.get().holidays||typeof key!=="string")return null;
+      const year=Number(key.slice(0,4));
+      if(!Number.isFinite(year))return null;
+      return(cache[year]||(cache[year]=build(year)))[key]||null;
+    }
+  };
+})();
+function holidayChip(key){
+  const name=FrenchHolidays.name(key);
+  return name?`<div class="holiday-chip" title="Jour férié">Férié · ${escapeHtml(name)}</div>`:"";
+}
+/* ===== fin du noyau V2.8 ===== */
 
 const Store={
   get(key,fallback){
@@ -3231,6 +3422,7 @@ document.querySelectorAll("[data-settings-tab]").forEach(button=>{
 
 document.documentElement.dataset.theme=
   Store.get("studyspaceTheme","light");
+Appearance.apply();
 
 document.getElementById("themeButton").addEventListener("click",()=>{
   const theme=document.documentElement.dataset.theme==="dark"
@@ -3558,6 +3750,7 @@ function renderAgenda(){
       <div class="day-column">
         <div class="day-name">${names[index]}</div>
         <div class="day-date">${day.getDate()}</div>
+        ${holidayChip(key)}
         ${
           courses.map(course=>`
             <div class="event" style="background:${course.color}">
@@ -3608,6 +3801,7 @@ function renderAgenda(){
             ${day.getDate()} ${day.toLocaleDateString("fr-FR",{month:"short"})}
           </span>
         </div>
+        ${holidayChip(key)}
 
         ${
           courses.map(course=>`
@@ -3732,13 +3926,16 @@ function renderTaskCalendar(){
     const key=dateKey(day);
     const otherMonth=day.getMonth()!==reference.getMonth();
     const hasTasks=Boolean(tasksByDay[key]);
+    const holidayName=FrenchHolidays.name(key);
 
     cells.push(`
       <div
         class="task-calendar-day
           ${otherMonth?"other-month":""}
           ${key===todayKey?"today":""}
-          ${key===taskDayFilter?"selected":""}"
+          ${key===taskDayFilter?"selected":""}
+          ${holidayName?"holiday":""}"
+        ${holidayName?`title="${escapeHtml(holidayName)}"`:""}
         onclick="selectTaskDay('${key}')"
       >
         <span>${day.getDate()}</span>
@@ -4673,7 +4870,7 @@ renderExamChecklist();
 
 document.getElementById("exportData").addEventListener("click",()=>{
   downloadFile(
-    "studyspace-v2.3-sauvegarde.json",
+    "studyspace-v"+VERSION+"-sauvegarde.json",
     JSON.stringify(data,null,2),
     "application/json"
   );
@@ -5614,7 +5811,15 @@ let pushTimer=null;
 let lastSyncedJson="";
 let firstSnapshot=true;
 
+/* V2.8 : état en lecture seule pour le centre de diagnostic (aucune logique de synchro modifiée) */
+const diagState={badge:"",badgeAt:0,lastError:null};
+function noteError(source,error){
+  diagState.lastError={source,code:(error&&error.code)||"",message:String((error&&error.message)||error||"").slice(0,200),at:Date.now()};
+}
+
 function showBadge(text,cls){
+  diagState.badge=text;
+  diagState.badgeAt=Date.now();
   badge.style.display="block";
   badge.className="sync-badge "+(cls||"");
   badge.textContent=text;
@@ -5641,7 +5846,7 @@ function pushNow(){
   showBadge("Synchro…","saving");
   setDoc(userRef,{json,updatedAt:Date.now()})
     .then(()=>showBadge("✓ Synchronisé"))
-    .catch(()=>showBadge("Hors ligne","offline"));
+    .catch(error=>{noteError("setDoc",error);showBadge("Hors ligne","offline");});
 }
 
 function schedulePush(){
@@ -5692,7 +5897,7 @@ function startSync(user){
     if(!typing)renderAll();
     firstSnapshot=false;
     showBadge("✓ Mis à jour");
-  },()=>showBadge("Hors ligne","offline"));
+  },error=>{noteError("onSnapshot",error);showBadge("Hors ligne","offline");});
 }
 
 function stopSync(){
@@ -5708,6 +5913,7 @@ signInButton.addEventListener("click",async()=>{
   try{
     await signInWithPopup(auth,provider);
   }catch(error){
+    noteError("signIn",error);
     if(error.code==="auth/popup-blocked"||error.code==="auth/operation-not-supported-in-this-environment"){
       signInWithRedirect(auth,provider);
     }else if(error.code==="auth/unauthorized-domain"){
@@ -5762,6 +5968,15 @@ document.getElementById("resetData").addEventListener("click",async event=>{
 
 window.addEventListener("online",()=>{showBadge("✓ En ligne");schedulePush();});
 window.addEventListener("offline",()=>showBadge("Hors ligne","offline"));
+
+window.StudySpaceDiag={
+  libs:{app:typeof initializeApp==="function",auth:typeof getAuth==="function",firestore:typeof initializeFirestore==="function"},
+  firestoreReady:Boolean(db),
+  get user(){return auth.currentUser?{email:auth.currentUser.email||""}:null},
+  get listening(){return Boolean(userRef)&&Boolean(unsubscribe)},
+  get lastSync(){return{badge:diagState.badge,at:diagState.badgeAt}},
+  get lastError(){return diagState.lastError}
+};
 
 onAuthStateChanged(auth,user=>{
   if(user){
@@ -6396,7 +6611,7 @@ function createAdminInterface(){
         <div class="admin-space" id="adminSpace">
             <div class="admin-header">
                 <div>
-                    <h2>🔐 Espace administrateur</h2>
+                    <h2>🔐 Espace administrateur <small style="font-size:12px;color:var(--muted)">V${VERSION}</small></h2>
                     <p>
                         Les informations sont enregistrées avec les autres données
                         StudySpace et synchronisées avec ton compte Google.
@@ -6426,6 +6641,9 @@ function createAdminInterface(){
                 </button>
                 <button class="button button-secondary" data-admin-section="maintenance">
                     🛠️ Maintenance
+                </button>
+                <button class="button button-secondary" data-admin-section="diagnostic">
+                    🩺 Diagnostic
                 </button>
             </div>
 
@@ -6775,6 +6993,23 @@ function createAdminInterface(){
                         <div class="section-title">Notes privées</div>
                         <div class="admin-list" id="adminNotesList"></div>
                     </div>
+                </div>
+            </section>
+
+            <section class="admin-section" data-admin-section-panel="diagnostic">
+                <div class="card card-padding">
+                    <div class="section-title">🩺 Centre de diagnostic</div>
+                    <p class="notes-meta">
+                        Contrôle en lecture seule : aucune donnée Firebase n’est écrite ni modifiée.
+                        Seul un test local temporaire est créé puis supprimé immédiatement.
+                    </p>
+                    <div class="admin-maintenance-actions" style="margin-top:12px">
+                        <button class="button button-primary" id="diagRun" type="button">Lancer le diagnostic</button>
+                        <button class="button button-secondary" id="diagCopy" type="button" disabled>Copier le rapport</button>
+                    </div>
+                    <div class="diag-copy-message" id="diagCopyMessage" role="status" aria-live="polite"></div>
+                    <div class="diag-summary" id="diagSummary"></div>
+                    <div id="diagResults"></div>
                 </div>
             </section>
 
@@ -7530,5 +7765,373 @@ createAdminInterface();
 })();
 </script>
 <!-- ===================== FIN ESPACE ADMINISTRATEUR ===================== -->
+<style id="v28-style">
+/* ===== StudySpace V2.8 — palettes, jours fériés, avancé, diagnostic, effets saisonniers ===== */
+[data-palette="blue"]{--primary:#2563eb;--primary-dark:#1d4ed8}
+[data-palette="sage"]{--primary:#4d7c63;--primary-dark:#3d664f}
+[data-palette="violet"]{--primary:#6f58b5;--primary-dark:#5a46a0}
+[data-palette="slate"]{--primary:#52627a;--primary-dark:#3f4d63}
+[data-theme="dark"][data-palette="blue"]{--primary:#6ea8fe;--primary-dark:#4d8ff0}
+[data-theme="dark"][data-palette="sage"]{--primary:#7fb99a;--primary-dark:#64a07f}
+[data-theme="dark"][data-palette="violet"]{--primary:#a594e6;--primary-dark:#8a78d6}
+[data-theme="dark"][data-palette="slate"]{--primary:#9fb0c8;--primary-dark:#8496b0}
+
+/* Réduction des animations (choix de l'utilisateur ou réglage du système) */
+html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{
+  animation-duration:.01ms!important;animation-iteration-count:1!important;
+  animation-delay:0s!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;
+    animation-delay:0s!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+/* Jours fériés */
+.holiday-chip{display:inline-block;margin:2px 0 6px;padding:3px 8px;border-radius:999px;font-size:11px;
+  line-height:1.3;color:var(--text);background:rgba(237,156,40,.14);border:1px solid rgba(237,156,40,.4)}
+.task-calendar-day.holiday{box-shadow:inset 0 -3px 0 rgba(237,156,40,.7)}
+
+/* Options avancées */
+.v28-stack{display:grid;gap:16px}
+.v28-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0}
+.v28-check{display:flex;gap:10px;align-items:center;margin:10px 0;cursor:pointer}
+.v28-check input{width:18px;height:18px;accent-color:var(--primary)}
+.v28-palettes{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}
+.v28-palette{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;cursor:pointer;
+  border:2px solid var(--border);background:var(--surface);color:var(--text)}
+.v28-palette[aria-pressed="true"]{border-color:var(--primary)}
+.v28-swatch{display:inline-flex}
+.v28-swatch i{width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.15)}
+.v28-swatch i+i{margin-left:-5px}
+.v28-preview{margin-top:12px;padding:14px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface2)}
+.v28-preview .pv-card{padding:12px;border-radius:12px;background:var(--surface);border:1px solid var(--border)}
+.v28-preview .pv-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.v28-log details{border:1px solid var(--border);border-radius:12px;padding:10px 14px;background:var(--surface)}
+.v28-log summary{cursor:pointer;font-weight:700}
+.v28-log ul{margin:8px 0 0;padding-left:20px}
+.v28-log h4{margin:12px 0 0;font-size:13px;color:var(--muted)}
+
+/* Centre de diagnostic */
+.diag-summary{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.diag-pill{padding:4px 12px;border-radius:999px;font-weight:700;font-size:13px;border:1px solid var(--border)}
+.diag-group{margin-top:14px}
+.diag-group h3{margin:0 0 8px;font-size:15px}
+.diag-item{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;padding:9px 12px;margin-bottom:6px;
+  border-radius:12px;border:1px solid var(--border);background:var(--surface);border-left-width:5px}
+.diag-item .diag-state{font-weight:700;white-space:nowrap}
+.diag-item small{grid-column:1/-1;color:var(--muted);word-break:break-word}
+.diag-item.ok{border-left-color:var(--success)}.diag-item.ok .diag-state{color:var(--success)}
+.diag-item.warn{border-left-color:var(--warning)}.diag-item.warn .diag-state{color:var(--warning)}
+.diag-item.fail{border-left-color:var(--danger)}.diag-item.fail .diag-state{color:var(--danger)}
+.diag-item.na{border-left-color:var(--muted)}.diag-item.na .diag-state{color:var(--muted)}
+.diag-copy-message{font-weight:600;color:var(--success);min-height:1.2em}
+
+/* Effets saisonniers : jamais interactifs, jamais de défilement */
+.season-layer{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:1;contain:strict}
+.season-layer .sp{position:absolute;top:-6%;will-change:transform;animation:ssFall linear infinite}
+@keyframes ssFall{from{transform:translate3d(0,-8vh,0) rotate(0)}
+  to{transform:translate3d(var(--dx,30px),110vh,0) rotate(var(--rot,300deg))}}
+.season-winter .sp{border-radius:50%;opacity:.55;background:radial-gradient(circle,#fff 30%,rgba(190,215,255,.6));
+  box-shadow:0 0 3px rgba(120,150,200,.35)}
+.season-autumn .sp{border-radius:0 100% 0 100%;opacity:.35;background:var(--c,#d9822b)}
+.season-spring .sp{border-radius:100% 0 100% 0;opacity:.3;background:var(--c,#7bb77f)}
+.season-summer{background:radial-gradient(ellipse at 92% -8%,rgba(255,196,90,.17),transparent 55%),
+  linear-gradient(180deg,rgba(255,214,150,.06),transparent 40%)}
+[data-theme="dark"] .season-summer{background:radial-gradient(ellipse at 92% -8%,rgba(255,196,90,.09),transparent 55%)}
+</style>
+<script>
+"use strict";
+/* ===== StudySpace V2.8 — options avancées, diagnostic administrateur, effets saisonniers ===== */
+(function(){
+  const $=id=>document.getElementById(id);
+
+  /* ---------- Apparence et personnalisation ---------- */
+  const PALETTE_INFO={
+    original:{label:"Originale",light:["#536dfe","#4055d8"],dark:["#8191ff","#6878ed"]},
+    blue:{label:"Bleu professionnel",light:["#2563eb","#1d4ed8"],dark:["#6ea8fe","#4d8ff0"]},
+    sage:{label:"Vert sauge",light:["#4d7c63","#3d664f"],dark:["#7fb99a","#64a07f"]},
+    violet:{label:"Violet sobre",light:["#6f58b5","#5a46a0"],dark:["#a594e6","#8a78d6"]},
+    slate:{label:"Gris ardoise",light:["#52627a","#3f4d63"],dark:["#9fb0c8","#8496b0"]}
+  };
+
+  function currentThemeChoice(){
+    return UIPrefs.get().theme==="auto"?"auto":(document.documentElement.dataset.theme==="dark"?"dark":"light");
+  }
+
+  function renderAppearance(){
+    const prefs=UIPrefs.get();
+    $("v28Theme").value=currentThemeChoice();
+    $("v28ReduceMotion").checked=prefs.reduceMotion;
+    $("v28Holidays").checked=prefs.holidays;
+    $("v28Seasonal").checked=prefs.seasonal;
+    $("v28SeasonMode").value=prefs.seasonMode;
+    $("v28Season").value=prefs.season;
+    $("v28Season").disabled=prefs.seasonMode!=="manual";
+    const dark=document.documentElement.dataset.theme==="dark";
+    $("v28Palettes").innerHTML=UIPrefs.PALETTES.map(key=>{
+      const info=PALETTE_INFO[key];
+      const colors=dark?info.dark:info.light;
+      return `<button type="button" class="v28-palette" data-palette="${key}" aria-pressed="${prefs.palette===key}">
+        <span class="v28-swatch"><i style="background:${colors[0]}"></i><i style="background:${colors[1]}"></i></span>
+        ${escapeHtml(info.label)}</button>`;
+    }).join("");
+  }
+
+  function refreshAfterAppearanceChange(){
+    Appearance.apply();
+    renderAppearance();
+    Seasons.refresh();
+  }
+
+  $("v28Theme").addEventListener("change",event=>{
+    const value=event.target.value;
+    if(value==="auto"){
+      UIPrefs.set({theme:"auto"});
+    }else{
+      UIPrefs.set({theme:""});
+      document.documentElement.dataset.theme=value;
+      Store.set("studyspaceTheme",value); /* clé existante, partagée avec le bouton du haut */
+    }
+    refreshAfterAppearanceChange();
+  });
+  $("v28Palettes").addEventListener("click",event=>{
+    const button=event.target.closest("[data-palette]");
+    if(!button)return;
+    UIPrefs.set({palette:button.dataset.palette});
+    refreshAfterAppearanceChange();
+  });
+  $("v28ReduceMotion").addEventListener("change",event=>{
+    UIPrefs.set({reduceMotion:event.target.checked});
+    refreshAfterAppearanceChange();
+  });
+  $("v28Holidays").addEventListener("change",event=>{
+    UIPrefs.set({holidays:event.target.checked});
+    renderAgenda();
+    renderTasks();
+  });
+  $("v28ResetAppearance").addEventListener("click",()=>{
+    if(!confirm("Réinitialiser l’apparence (thème clair, palette originale, animations et jours fériés par défaut) ?"))return;
+    UIPrefs.reset();
+    document.documentElement.dataset.theme="light";
+    Store.set("studyspaceTheme","light");
+    refreshAfterAppearanceChange();
+    renderAgenda();
+    renderTasks();
+  });
+  /* le bouton thème du haut reprend la main sur le mode automatique */
+  $("themeButton").addEventListener("click",()=>{
+    if(UIPrefs.get().theme==="auto")UIPrefs.set({theme:""});
+    renderAppearance();
+  });
+
+  /* ---------- Effets saisonniers ---------- */
+  const Seasons={
+    layer:null,
+    current(){
+      const prefs=UIPrefs.get();
+      if(prefs.seasonMode==="manual")return prefs.season;
+      const now=new Date();
+      const md=(now.getMonth()+1)*100+now.getDate();
+      if(md>=320&&md<621)return"spring";
+      if(md>=621&&md<923)return"summer";
+      if(md>=923&&md<1221)return"autumn";
+      return"winter";
+    },
+    refresh(){
+      if(this.layer){this.layer.remove();this.layer=null;}
+      const prefs=UIPrefs.get();
+      if(!prefs.seasonal||Appearance.reducedMotion())return;
+      const season=this.current();
+      const layer=document.createElement("div");
+      layer.className="season-layer season-"+season;
+      layer.setAttribute("aria-hidden","true");
+      if(season!=="summer"){
+        const small=window.matchMedia&&window.matchMedia("(max-width:700px)").matches;
+        const count=small?6:11;
+        const colors={autumn:["#d9822b","#b5651d","#c9a227"],spring:["#7bb77f","#a8d5a2","#f2b8c6"]}[season];
+        for(let i=0;i<count;i++){
+          const p=document.createElement("span");
+          p.className="sp";
+          const size=season==="winter"?4+Math.random()*5:8+Math.random()*6;
+          p.style.cssText=`left:${(Math.random()*96).toFixed(1)}%;width:${size.toFixed(1)}px;height:${size.toFixed(1)}px;`+
+            `animation-duration:${(season==="winter"?16:24)+Math.random()*16}s;animation-delay:-${(Math.random()*30).toFixed(1)}s;`+
+            `--dx:${(Math.random()*80-40).toFixed(0)}px;--rot:${(Math.random()*500-250).toFixed(0)}deg;`+
+            (colors?`--c:${colors[i%colors.length]};`:"");
+          layer.appendChild(p);
+        }
+      }
+      document.body.appendChild(layer);
+      this.layer=layer;
+    }
+  };
+  $("v28Seasonal").addEventListener("change",event=>{UIPrefs.set({seasonal:event.target.checked});refreshAfterAppearanceChange();});
+  $("v28SeasonMode").addEventListener("change",event=>{UIPrefs.set({seasonMode:event.target.value});refreshAfterAppearanceChange();});
+  $("v28Season").addEventListener("change",event=>{UIPrefs.set({season:event.target.value});refreshAfterAppearanceChange();});
+  if(window.matchMedia){
+    const motion=window.matchMedia("(prefers-reduced-motion: reduce)");
+    if(motion.addEventListener)motion.addEventListener("change",refreshAfterAppearanceChange);
+  }
+
+  /* ---------- Comptes rendus des mises à jour ---------- */
+  $("v28UpdateLog").innerHTML=UPDATE_LOG.map((entry,index)=>{
+    const date=new Date(entry.date+"T12:00:00");
+    const label=isNaN(date)?escapeHtml(entry.date):date.toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"});
+    return `<details${index===0?" open":""}>
+      <summary>V${escapeHtml(entry.version)} · ${label} — ${escapeHtml(entry.title)}</summary>
+      <h4>Nouveautés</h4><ul>${entry.features.map(item=>`<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      ${entry.fixes&&entry.fixes.length?`<h4>Corrections importantes</h4><ul>${entry.fixes.map(item=>`<li>${escapeHtml(item)}</li>`).join("")}</ul>`:""}
+    </details>`;
+  }).join("");
+
+  /* ---------- Centre de diagnostic (lecture seule) ---------- */
+  const netEvents={last:null};
+  window.addEventListener("online",()=>{netEvents.last={type:"retour en ligne",at:new Date()};});
+  window.addEventListener("offline",()=>{netEvents.last={type:"passage hors ligne",at:new Date()};});
+
+  const STATES={
+    ok:{icon:"✅",text:"Réussi"},warn:{icon:"⚠️",text:"Attention"},
+    fail:{icon:"❌",text:"Échec"},na:{icon:"⏺️",text:"Non vérifié"}
+  };
+  let lastReport="";
+
+  function collectDiagnostic(){
+    const results=[];
+    const add=(group,label,status,detail)=>results.push({group,label,status,detail:detail||""});
+    const hook=window.StudySpaceDiag;
+    const time=d=>d.toLocaleTimeString("fr-FR");
+
+    /* A. Stockage local */
+    const A="A. Stockage local";
+    let storageOk=false;
+    const testKey="__studyspace_diag_test__";
+    try{
+      localStorage.setItem(testKey,"ok");
+      storageOk=localStorage.getItem(testKey)==="ok";
+      add(A,"Lecture / écriture de test",storageOk?"ok":"fail",storageOk?"Valeur temporaire écrite puis relue.":"La valeur relue ne correspond pas.");
+    }catch(error){
+      add(A,"Lecture / écriture de test","fail","localStorage indisponible : "+(error&&error.name||"erreur"));
+    }finally{
+      try{localStorage.removeItem(testKey);}catch{}
+    }
+    let cleaned=true;
+    try{cleaned=localStorage.getItem(testKey)===null;}catch{cleaned=false;}
+    add(A,"Suppression de la clé de test",cleaned?"ok":"fail",cleaned?"Clé temporaire supprimée.":"La clé de test n’a pas pu être supprimée.");
+    try{
+      const raw=localStorage.getItem("studyspaceData");
+      add(A,"Données StudySpace locales",raw?"ok":"warn",raw?`Présentes (${(raw.length/1024).toFixed(1)} Ko).`:"Aucune donnée enregistrée localement.");
+    }catch{add(A,"Données StudySpace locales","na","Lecture impossible.");}
+
+    /* B. Compte Google */
+    const B="B. Compte Google";
+    if(!hook){
+      add(B,"Firebase Authentication","fail","Non chargé (bibliothèque indisponible ou hors ligne).");
+      add(B,"Utilisateur Google","na","Non vérifiable sans Firebase Authentication.");
+    }else{
+      add(B,"Firebase Authentication",hook.libs.auth?"ok":"fail",hook.libs.auth?"Chargé.":"Non chargé.");
+      const user=hook.user;
+      add(B,"Utilisateur Google",user?"ok":"warn",user?("Connecté"+(user.email?" : "+user.email:"")):"Aucun utilisateur connecté.");
+    }
+
+    /* C. Connexion */
+    const C="C. Connexion";
+    add(C,"navigator.onLine",navigator.onLine?"ok":"warn",navigator.onLine?"Le navigateur se déclare en ligne.":"Le navigateur se déclare hors ligne.");
+    add(C,"Dernier changement d’état",netEvents.last?"ok":"na",netEvents.last?`${netEvents.last.type} à ${time(netEvents.last.at)}`:"Aucun changement depuis l’ouverture de la page.");
+    add(C,"Précision","na","navigator.onLine ne garantit pas à lui seul un accès réel à Internet.");
+
+    /* D. Firebase et Firestore */
+    const D="D. Firebase et Firestore";
+    if(!hook){
+      add(D,"Bibliothèques Firebase","fail",navigator.onLine?"Non chargées.":"Non chargées (appareil hors ligne).");
+      add(D,"Firestore","na","Non vérifiable.");
+      add(D,"Synchronisation","na","Non vérifiable.");
+      add(D,"Dernière erreur Firebase","na","Aucune information disponible.");
+    }else{
+      const libsOk=hook.libs.app&&hook.libs.auth&&hook.libs.firestore;
+      add(D,"Bibliothèques Firebase (app, auth, firestore)",libsOk?"ok":"fail",libsOk?"Chargées.":"Au moins une bibliothèque manque.");
+      add(D,"Firestore initialisé",hook.firestoreReady?"ok":"fail",hook.firestoreReady?"Instance disponible (cache local persistant configuré).":"Instance absente.");
+      const sync=hook.lastSync;
+      add(D,"Synchronisation",hook.listening?"ok":"warn",
+        (hook.listening?"Écoute du document active.":"Écoute inactive (utilisateur non connecté ?).")+
+        (sync.badge?` Dernier état affiché : « ${sync.badge} » à ${time(new Date(sync.at))}.`:" Aucun état de synchronisation depuis l’ouverture."));
+      const err=hook.lastError;
+      add(D,"Dernière erreur Firebase",err?"warn":"ok",err?`${err.source}${err.code?" ("+err.code+")":""} : ${err.message} — à ${time(new Date(err.at))}`:"Aucune erreur enregistrée depuis l’ouverture.");
+    }
+
+    /* E. Application */
+    const E="E. Application";
+    const now=new Date();
+    add(E,"Version","ok","StudySpace V"+VERSION);
+    add(E,"Date et heure du diagnostic","ok",now.toLocaleString("fr-FR"));
+    const checks={save:typeof save,renderAll:typeof renderAll,renderSubjects:typeof renderSubjects,
+      renderQuickNotes:typeof renderQuickNotes,renderTasks:typeof renderTasks,renderAgenda:typeof renderAgenda,
+      renderDashboard:typeof renderDashboard,navigate:typeof navigate,updateTimer:typeof updateTimer,
+      downloadFile:typeof downloadFile};
+    const names=Object.keys(checks);
+    const missing=names.filter(name=>checks[name]!=="function");
+    add(E,"Fonctions principales",missing.length?"fail":"ok",missing.length?"Manquantes : "+missing.join(", "):`${names.length} fonctions présentes.`);
+    const prefs=UIPrefs.get();
+    add(E,"Préférences visuelles","ok",
+      `thème ${currentThemeChoice()}, palette ${prefs.palette}, animations ${Appearance.reducedMotion()?"réduites":"normales"}, `+
+      `jours fériés ${prefs.holidays?"affichés":"masqués"}, effets saisonniers ${prefs.seasonal?"actifs ("+Seasons.current()+")":"désactivés"}`);
+    return results;
+  }
+
+  function renderDiagnostic(results){
+    const counts={ok:0,warn:0,fail:0,na:0};
+    results.forEach(r=>counts[r.status]++);
+    $("diagSummary").innerHTML=
+      `<span class="diag-pill">✅ ${counts.ok} réussi(s)</span>`+
+      `<span class="diag-pill">⚠️ ${counts.warn} attention</span>`+
+      `<span class="diag-pill">❌ ${counts.fail} échec(s)</span>`+
+      `<span class="diag-pill">⏺️ ${counts.na} non vérifié(s)</span>`;
+    const groups=[...new Set(results.map(r=>r.group))];
+    $("diagResults").innerHTML=groups.map(group=>`
+      <div class="diag-group"><h3>${escapeHtml(group)}</h3>${
+        results.filter(r=>r.group===group).map(r=>{
+          const s=STATES[r.status];
+          return `<div class="diag-item ${r.status}"><span class="diag-state">${s.icon} ${s.text}</span>
+            <strong>${escapeHtml(r.label)}</strong><small>${escapeHtml(r.detail)}</small></div>`;
+        }).join("")}</div>`).join("");
+
+    const lines=[
+      "RAPPORT DE DIAGNOSTIC — StudySpace V"+VERSION,
+      "Date : "+new Date().toLocaleString("fr-FR"),
+      "Navigateur : "+navigator.userAgent,
+      `Résumé : ${counts.ok} réussi(s), ${counts.warn} attention, ${counts.fail} échec(s), ${counts.na} non vérifié(s)`,""
+    ];
+    groups.forEach(group=>{
+      lines.push(group);
+      results.filter(r=>r.group===group).forEach(r=>lines.push(`  [${STATES[r.status].text}] ${r.label}${r.detail?" — "+r.detail:""}`));
+      lines.push("");
+    });
+    const errors=results.filter(r=>r.status==="fail"||(r.status==="warn"&&r.group.startsWith("D.")));
+    lines.push("Erreurs connues : "+(errors.length?"":"aucune"));
+    errors.forEach(r=>lines.push(`  - ${r.label} : ${r.detail}`));
+    lastReport=lines.join("\n");
+    $("diagCopy").disabled=false;
+  }
+
+  $("diagRun").addEventListener("click",()=>{
+    $("diagCopyMessage").textContent="";
+    renderDiagnostic(collectDiagnostic());
+  });
+  $("diagCopy").addEventListener("click",async()=>{
+    if(!lastReport)return;
+    let copied=false;
+    try{await navigator.clipboard.writeText(lastReport);copied=true;}catch{}
+    if(!copied){
+      const area=document.createElement("textarea");
+      area.value=lastReport;area.style.position="fixed";area.style.opacity="0";
+      document.body.appendChild(area);area.select();
+      try{copied=document.execCommand("copy");}catch{}
+      area.remove();
+    }
+    $("diagCopyMessage").textContent=copied?"✓ Rapport copié dans le presse-papiers.":"Copie impossible : sélectionne le texte manuellement.";
+  });
+
+  /* ---------- Démarrage ---------- */
+  Appearance.apply();
+  renderAppearance();
+  Seasons.refresh();
+})();
+</script>
 </body>
 </html>
