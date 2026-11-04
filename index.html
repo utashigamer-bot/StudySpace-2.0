@@ -2595,6 +2595,7 @@ body.splash-active{background:#0c0b14}
 
       <div class="task-calendar-footer" id="taskCalendarFooter" style="display:none">
         <span id="taskCalendarSelectedLabel"></span>
+        <button type="button" class="holiday-chip" id="taskCalendarHolidayButton" style="display:none" title="Voir la description"></button>
         <button class="button button-secondary" onclick="clearTaskDayFilter()">Voir tous les devoirs</button>
       </div>
     </div>
@@ -2665,13 +2666,16 @@ body.splash-active{background:#0c0b14}
     </div>
   </div>
 
-  <div class="actions" id="settingsTabs" style="margin-bottom:18px;flex-wrap:wrap">
+  <div class="settings-nav" id="settingsTabs">
+    <span class="v28-tabgroup">Général</span>
     <button class="button button-primary" data-settings-tab="profile">👤 Profil</button>
+    <button class="button button-secondary" data-settings-tab="advanced">⚙️ Avancé</button>
+    <span class="v28-tabgroup">Études</span>
     <button class="button button-secondary" data-settings-tab="tools">🧰 Outils</button>
     <button class="button button-secondary" data-settings-tab="quicknotes">📝 Notes</button>
     <button class="button button-secondary" data-settings-tab="objectives">🎯 Objectifs</button>
     <button class="button button-secondary" data-settings-tab="pomodoro">◷ Focus</button>
-    <button class="button button-secondary" data-settings-tab="advanced">⚙️ Avancé</button>
+    <span class="v28-tabgroup">Application</span>
     <button class="button button-secondary" data-settings-tab="about">ℹ️ À propos</button>
   </div>
 
@@ -3036,9 +3040,10 @@ body.splash-active{background:#0c0b14}
             <strong>Aperçu</strong>
             <p class="notes-meta" style="margin:4px 0 0">Texte secondaire, carte et boutons avec la palette choisie.</p>
             <div class="pv-actions">
-              <span class="button button-primary" style="pointer-events:none">Principal</span>
-              <span class="button button-secondary" style="pointer-events:none">Secondaire</span>
+              <button type="button" class="button button-primary" id="v28PvPrimary">Principal</button>
+              <button type="button" class="button button-secondary" id="v28PvSecondary">Secondaire</button>
             </div>
+            <p class="notes-meta" id="v28PvFeedback" role="status" aria-live="polite" style="margin:8px 0 0">Clique sur un bouton pour tester son rendu.</p>
           </div>
         </div>
 
@@ -3257,20 +3262,50 @@ const FrenchHolidays=(()=>{
     });
     return map;
   }
+  const TEXTS={
+    "Jour de l’An":"Premier jour de l’année dans le calendrier grégorien. En France, on se souhaite la bonne année et on se retrouve en famille ou entre amis.",
+    "Fête du Travail":"Journée internationale des travailleurs, née à la fin du XIXe siècle après les grèves de 1886 aux États-Unis pour obtenir la journée de huit heures. Elle est devenue fête légale en France en 1947. On offre traditionnellement du muguet.",
+    "Victoire 1945":"Commémore la capitulation de l’Allemagne nazie le 8 mai 1945, qui met fin à la Seconde Guerre mondiale en Europe. Des cérémonies d’hommage ont lieu dans toute la France.",
+    "Fête nationale":"Commémore la prise de la Bastille le 14 juillet 1789 et la Fête de la Fédération de 1790. C’est la fête nationale française depuis 1880 : défilé militaire, bals et feux d’artifice.",
+    "Assomption":"Fête chrétienne qui célèbre, selon la tradition catholique, l’entrée de la Vierge Marie au ciel. C’est un jour férié en France.",
+    "Toussaint":"Fête catholique en l’honneur de tous les saints. En France, c’est aussi le moment où l’on fleurit les tombes et où l’on se recueille au cimetière en pensant à ses proches disparus.",
+    "Armistice":"Commémore l’armistice signé le 11 novembre 1918 à Rethondes, qui met fin aux combats de la Première Guerre mondiale. Chaque année, des cérémonies rendent hommage aux morts pour la France.",
+    "Noël":"Fête chrétienne qui célèbre la naissance de Jésus. Elle est aussi une fête familiale : sapin, cadeaux et repas partagés.",
+    "Lundi de Pâques":"Lendemain de Pâques, fête chrétienne de la résurrection du Christ. Pâques tombe le premier dimanche après la première pleine lune de printemps, d’où une date qui change chaque année.",
+    "Ascension":"Fête chrétienne qui célèbre, selon la tradition, l’élévation de Jésus au ciel. Elle a lieu un jeudi, 39 jours après Pâques. Beaucoup en profitent pour faire le « pont » jusqu’au week-end.",
+    "Lundi de Pentecôte":"Lendemain de la Pentecôte, fête chrétienne qui célèbre la venue de l’Esprit saint sur les apôtres, 50 jours après Pâques. En France, ce jour peut aussi servir de « journée de solidarité » dans certaines entreprises."
+  };
+  const movableNames=movable.map(item=>item[1]);
+  function lookup(key){
+    if(typeof key!=="string")return null;
+    const year=Number(key.slice(0,4));
+    if(!Number.isFinite(year))return null;
+    return(cache[year]||(cache[year]=build(year)))[key]||null;
+  }
   return{
     easter,
     /* nom du jour férié pour "AAAA-MM-JJ", ou null (aussi null si l'option est désactivée) */
     name(key){
-      if(!UIPrefs.get().holidays||typeof key!=="string")return null;
+      return UIPrefs.get().holidays?lookup(key):null;
+    },
+    /* description détaillée (indépendante de l'option d'affichage) */
+    info(key){
+      const name=lookup(key);
+      if(!name)return null;
       const year=Number(key.slice(0,4));
-      if(!Number.isFinite(year))return null;
-      return(cache[year]||(cache[year]=build(year)))[key]||null;
+      const isMovable=movableNames.includes(name);
+      const paques=easter(year).toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"});
+      return{
+        name,
+        text:TEXTS[name]||"",
+        kind:isMovable?`Date mobile, calculée à partir de Pâques (Pâques ${year} : ${paques}).`:"Date fixe, identique chaque année."
+      };
     }
   };
 })();
 function holidayChip(key){
   const name=FrenchHolidays.name(key);
-  return name?`<div class="holiday-chip" title="Jour férié">Férié · ${escapeHtml(name)}</div>`:"";
+  return name?`<button type="button" class="holiday-chip" data-holiday="${key}" title="Voir la description">Férié · ${escapeHtml(name)}</button>`:"";
 }
 /* ===== fin du noyau V2.8 ===== */
 
@@ -3951,6 +3986,13 @@ function renderTaskCalendar(){
     footer.style.display="flex";
     document.getElementById("taskCalendarSelectedLabel").textContent=
       "Devoirs du "+formatDate(taskDayFilter);
+    const holidayButton=document.getElementById("taskCalendarHolidayButton");
+    const holidayLabel=FrenchHolidays.name(taskDayFilter);
+    holidayButton.style.display=holidayLabel?"":"none";
+    if(holidayLabel){
+      holidayButton.dataset.holiday=taskDayFilter;
+      holidayButton.textContent="Férié · "+holidayLabel;
+    }
   }else{
     footer.style.display="none";
   }
@@ -7836,6 +7878,40 @@ html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{
 .season-summer{background:radial-gradient(ellipse at 92% -8%,rgba(255,196,90,.17),transparent 55%),
   linear-gradient(180deg,rgba(255,214,150,.06),transparent 40%)}
 [data-theme="dark"] .season-summer{background:radial-gradient(ellipse at 92% -8%,rgba(255,196,90,.09),transparent 55%)}
+
+/* Menu latéral PC : le bouton Réglages reste toujours accessible, même sur une fenêtre peu haute */
+.sidebar .nav{min-height:0;overflow-y:auto;scrollbar-width:thin}
+.sidebar .sidebar-bottom{flex-shrink:0}
+
+/* Réglages : menu regroupé (colonne à gauche sur PC, bandeau défilant sur mobile) */
+.settings-nav{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:16px;scrollbar-width:thin;
+  -webkit-overflow-scrolling:touch}
+.settings-nav .v28-tabgroup{display:none}
+.settings-nav [data-settings-tab]{flex:0 0 auto;white-space:nowrap}
+@media(min-width:900px){
+  #page-settings.active{display:grid;grid-template-columns:220px minmax(0,1fr);column-gap:22px;align-items:start}
+  #page-settings>.page-header{grid-column:1/-1}
+  #page-settings>.settings-nav{grid-column:1;grid-row:2;flex-direction:column;gap:4px;overflow:visible;margin:0;
+    padding:12px;position:sticky;top:84px;max-height:calc(100vh - 110px);overflow-y:auto;
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+  #page-settings>.settings-tab-panel{grid-column:2;grid-row:2;min-width:0}
+  .settings-nav .v28-tabgroup{display:block;margin:10px 8px 4px;font-size:11px;font-weight:700;
+    letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .settings-nav .v28-tabgroup:first-child{margin-top:2px}
+  .settings-nav [data-settings-tab]{width:100%;text-align:left;justify-content:flex-start}
+}
+
+/* Aperçu et jours fériés cliquables */
+.pv-actions .pv-active{outline:2px solid var(--text);outline-offset:2px}
+button.holiday-chip{font:inherit;font-size:11px;line-height:1.3;cursor:pointer;text-align:left}
+button.holiday-chip:hover{background:rgba(237,156,40,.26)}
+.v28-modal{position:fixed;inset:0;z-index:3000;display:grid;place-items:center;padding:16px;background:rgba(10,15,30,.5)}
+.v28-modal-card{width:100%;max-width:460px;padding:22px;border-radius:var(--radius);background:var(--surface);
+  color:var(--text);border:1px solid var(--border);box-shadow:var(--shadow)}
+.v28-modal-card h2{margin:0 0 4px;font-size:20px}
+.v28-modal-date{margin:0 0 12px;color:var(--muted);font-size:13px}
+.v28-modal-card p{margin:0 0 10px;line-height:1.5}
+.v28-modal-kind{font-size:12px;color:var(--muted)}
 </style>
 <script>
 "use strict";
@@ -8125,6 +8201,52 @@ html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{
       area.remove();
     }
     $("diagCopyMessage").textContent=copied?"✓ Rapport copié dans le presse-papiers.":"Copie impossible : sélectionne le texte manuellement.";
+  });
+
+  /* ---------- Aperçu : boutons de test ---------- */
+  [["v28PvPrimary","Bouton principal"],["v28PvSecondary","Bouton secondaire"]].forEach(([id,label])=>{
+    $(id).addEventListener("click",()=>{
+      $("v28PvFeedback").textContent="✓ "+label+" cliqué : voici son rendu avec le thème et la palette actuels.";
+      document.querySelectorAll(".v28-preview .button").forEach(button=>button.classList.toggle("pv-active",button.id===id));
+    });
+  });
+
+  /* ---------- Description d'un jour férié ---------- */
+  let holidayReturnFocus=null;
+  function closeHolidayDialog(){
+    const dialog=$("v28HolidayDialog");
+    if(dialog)dialog.remove();
+    document.removeEventListener("keydown",holidayKeydown);
+    if(holidayReturnFocus&&holidayReturnFocus.focus)holidayReturnFocus.focus();
+    holidayReturnFocus=null;
+  }
+  function holidayKeydown(event){if(event.key==="Escape")closeHolidayDialog();}
+  function openHolidayDialog(key){
+    const info=FrenchHolidays.info(key);
+    if(!info)return;
+    closeHolidayDialog();
+    holidayReturnFocus=document.activeElement;
+    let date=new Date(key+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+    date=date.charAt(0).toUpperCase()+date.slice(1);
+    const overlay=document.createElement("div");
+    overlay.className="v28-modal";
+    overlay.id="v28HolidayDialog";
+    overlay.innerHTML=`<div class="v28-modal-card" role="dialog" aria-modal="true" aria-labelledby="v28HolidayTitle">
+      <h2 id="v28HolidayTitle">${escapeHtml(info.name)}</h2>
+      <p class="v28-modal-date">${escapeHtml(date)}</p>
+      <p>${escapeHtml(info.text)}</p>
+      <p class="v28-modal-kind">${escapeHtml(info.kind)}</p>
+      <button type="button" class="button button-primary" id="v28HolidayClose">Fermer</button>
+    </div>`;
+    overlay.addEventListener("click",event=>{if(event.target===overlay)closeHolidayDialog();});
+    document.body.appendChild(overlay);
+    $("v28HolidayClose").addEventListener("click",closeHolidayDialog);
+    document.addEventListener("keydown",holidayKeydown);
+    $("v28HolidayClose").focus();
+  }
+  document.addEventListener("click",event=>{
+    const chip=event.target.closest("[data-holiday]");
+    if(chip&&chip.dataset.holiday)openHolidayDialog(chip.dataset.holiday);
   });
 
   /* ---------- Démarrage ---------- */
