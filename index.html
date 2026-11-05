@@ -3070,6 +3070,13 @@ body.splash-active{background:#0c0b14}
             <option value="winter">Hiver</option>
           </select>
         </div>
+        <label class="label" style="margin-top:14px">Niveau des animations et effets</label>
+        <div class="v28-seg" id="v28Levels" role="group" aria-label="Niveau des effets saisonniers">
+          <button type="button" data-level="subtle" aria-pressed="false">Discret</button>
+          <button type="button" data-level="balanced" aria-pressed="false">Équilibré</button>
+          <button type="button" data-level="rich" aria-pressed="false">Immersif</button>
+        </div>
+        <p class="notes-meta" id="v28LevelHint" style="margin-top:8px"></p>
       </div>
 
       <div class="card card-padding">
@@ -3160,7 +3167,7 @@ const UPDATE_LOG=[
       "Centre de diagnostic dans l'espace administrateur (lecture seule, aucune écriture Firebase)",
       "Personnalisation de l'apparence : thème, palettes, réduction des animations",
       "Jours fériés français dans l'agenda et le calendrier des devoirs",
-      "Effets saisonniers facultatifs et très discrets",
+      "Effets saisonniers facultatifs, avec choix du niveau (discret, équilibré, immersif)",
       "Section « Comptes rendus des mises à jour »"
     ],
     fixes:[
@@ -3175,8 +3182,9 @@ const UIPrefs=(()=>{
   const THEMES=["","auto"];
   const PALETTES=["original","blue","sage","violet","slate"];
   const SEASONS=["spring","summer","autumn","winter"];
+  const LEVELS=["subtle","balanced","rich"];
   const DEFAULTS={theme:"",palette:"original",reduceMotion:false,holidays:true,
-    seasonal:false,seasonMode:"auto",season:"autumn"};
+    seasonal:false,seasonMode:"auto",season:"autumn",intensity:"balanced"};
   const clean=raw=>{
     const r=raw&&typeof raw==="object"&&!Array.isArray(raw)?raw:{};
     return{
@@ -3186,7 +3194,8 @@ const UIPrefs=(()=>{
       holidays:typeof r.holidays==="boolean"?r.holidays:DEFAULTS.holidays,
       seasonal:typeof r.seasonal==="boolean"?r.seasonal:DEFAULTS.seasonal,
       seasonMode:r.seasonMode==="manual"?"manual":"auto",
-      season:SEASONS.includes(r.season)?r.season:DEFAULTS.season
+      season:SEASONS.includes(r.season)?r.season:DEFAULTS.season,
+      intensity:LEVELS.includes(r.intensity)?r.intensity:DEFAULTS.intensity
     };
   };
   let cache=null;
@@ -3196,7 +3205,7 @@ const UIPrefs=(()=>{
     return clean(raw);
   };
   return{
-    KEY,PALETTES,SEASONS,DEFAULTS,
+    KEY,PALETTES,SEASONS,LEVELS,DEFAULTS,
     get(){return cache||(cache=read());},
     set(patch){
       cache=clean(Object.assign({},this.get(),patch));
@@ -5531,52 +5540,8 @@ if(glassBar){
   },{passive:true});
 }
 
-/* Navigation par balayage sur mobile */
-
-const swipePages=[
-  "dashboard",
-  "courses",
-  "agenda",
-  "tasks",
-  "settings"
-];
-
-let swipeStartX=0;
-let swipeStartY=0;
-
-document.addEventListener("touchstart",event=>{
-  if(window.innerWidth>760)return;
-
-  const touch=event.changedTouches[0];
-  swipeStartX=touch.clientX;
-  swipeStartY=touch.clientY;
-},{passive:true});
-
-document.addEventListener("touchend",event=>{
-  if(window.innerWidth>760)return;
-
-  const touch=event.changedTouches[0];
-  const distanceX=touch.clientX-swipeStartX;
-  const distanceY=touch.clientY-swipeStartY;
-
-  if(
-    Math.abs(distanceX)<75||
-    Math.abs(distanceX)<Math.abs(distanceY)*1.35
-  )return;
-
-  if(event.target.closest("input,textarea,select,.week-grid,.mobile-menu,.menu-handle,.side-menu,.side-menu-handle"))return;
-
-  const index=swipePages.indexOf(currentPage);
-  if(index<0)return;
-
-  if(distanceX<0&&index<swipePages.length-1){
-    navigate(swipePages[index+1]);
-  }
-
-  if(distanceX>0&&index>0){
-    navigate(swipePages[index-1]);
-  }
-},{passive:true});
+/* V2.8 : le changement de page par balayage gauche/droite sur l'écran est supprimé.
+   La navigation se fait avec les boutons des menus. */
 
 function renderAll(){
   renderProfile();
@@ -7866,18 +7831,61 @@ html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{
 .diag-item.na{border-left-color:var(--muted)}.diag-item.na .diag-state{color:var(--muted)}
 .diag-copy-message{font-weight:600;color:var(--success);min-height:1.2em}
 
-/* Effets saisonniers : jamais interactifs, jamais de défilement */
+/* Effets saisonniers : jamais interactifs, jamais de défilement, uniquement des transformations CSS */
 .season-layer{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:1;contain:strict}
-.season-layer .sp{position:absolute;top:-6%;will-change:transform;animation:ssFall linear infinite}
-@keyframes ssFall{from{transform:translate3d(0,-8vh,0) rotate(0)}
-  to{transform:translate3d(var(--dx,30px),110vh,0) rotate(var(--rot,300deg))}}
-.season-winter .sp{border-radius:50%;opacity:.55;background:radial-gradient(circle,#fff 30%,rgba(190,215,255,.6));
-  box-shadow:0 0 3px rgba(120,150,200,.35)}
-.season-autumn .sp{border-radius:0 100% 0 100%;opacity:.35;background:var(--c,#d9822b)}
-.season-spring .sp{border-radius:100% 0 100% 0;opacity:.3;background:var(--c,#7bb77f)}
-.season-summer{background:radial-gradient(ellipse at 92% -8%,rgba(255,196,90,.17),transparent 55%),
-  linear-gradient(180deg,rgba(255,214,150,.06),transparent 40%)}
-[data-theme="dark"] .season-summer{background:radial-gradient(ellipse at 92% -8%,rgba(255,196,90,.09),transparent 55%)}
+.season-layer.paused *{animation-play-state:paused!important}
+.season-layer .sp{position:absolute;top:0;left:var(--x,50%);will-change:transform;
+  animation:ssFall var(--d,24s) linear var(--delay,0s) infinite}
+.season-layer .sp.up{animation-name:ssRise}
+.season-layer .sp>i{display:block;width:var(--s,8px);height:var(--s,8px);opacity:var(--o,.5);
+  animation:ssSway var(--sw,6s) ease-in-out infinite alternate}
+@keyframes ssFall{0%{transform:translate3d(0,-10vh,0);opacity:0}8%{opacity:1}92%{opacity:1}
+  100%{transform:translate3d(var(--dx,30px),108vh,0);opacity:0}}
+@keyframes ssRise{0%{transform:translate3d(0,108vh,0);opacity:0}10%{opacity:1}90%{opacity:1}
+  100%{transform:translate3d(var(--dx,30px),-10vh,0);opacity:0}}
+@keyframes ssSway{from{transform:translateX(-12px) rotate(var(--r0,0deg))}to{transform:translateX(12px) rotate(var(--r1,90deg))}}
+/* Ambiance de fond (niveaux Équilibré et Immersif) */
+.season-layer::before{content:"";position:absolute;inset:0;opacity:0}
+.season-layer.lvl-balanced::before,.season-layer.lvl-rich::before{opacity:1}
+[data-theme="dark"] .season-layer.lvl-balanced::before,[data-theme="dark"] .season-layer.lvl-rich::before{opacity:.6}
+.season-winter::before{background:radial-gradient(ellipse at 50% 118%,rgba(185,210,245,.24),transparent 60%),
+  radial-gradient(ellipse at 50% -20%,rgba(255,255,255,.35),transparent 55%)}
+[data-theme="dark"] .season-winter::before{background:radial-gradient(ellipse at 50% 118%,rgba(120,160,230,.26),transparent 60%)}
+.season-autumn::before{background:radial-gradient(ellipse at 0% 100%,rgba(217,130,43,.15),transparent 55%),
+  radial-gradient(ellipse at 100% 0%,rgba(201,162,39,.10),transparent 50%)}
+.season-spring::before{background:radial-gradient(ellipse at 0% 0%,rgba(242,184,198,.18),transparent 50%),
+  radial-gradient(ellipse at 100% 100%,rgba(123,183,127,.15),transparent 55%)}
+.season-summer::before{background:linear-gradient(180deg,rgba(255,214,150,.08),transparent 45%)}
+/* Formes */
+.season-winter .sp>i{border-radius:50%;background:radial-gradient(circle,#fff 25%,rgba(165,195,240,.75) 70%,transparent);
+  box-shadow:0 0 3px rgba(100,140,205,.5)}
+[data-theme="dark"] .season-winter .sp>i{box-shadow:0 0 5px rgba(200,220,255,.35)}
+.season-autumn .sp>i{border-radius:0 100% 0 100%;background:linear-gradient(135deg,var(--c,#d9822b),color-mix(in srgb,var(--c,#d9822b) 55%,#3a1a08))}
+.season-autumn .sp>i.alt{border-radius:100% 0 100% 0}
+.season-spring .sp>i{border-radius:100% 0 100% 0;background:var(--c,#a8d5a2)}
+.season-spring .sp>i.pollen{border-radius:50%;width:calc(var(--s,8px)*.7);height:calc(var(--s,8px)*.7);
+  background:radial-gradient(circle,rgba(255,236,150,.95),rgba(255,236,150,0) 70%)}
+.season-summer .sp>i{border-radius:50%;background:radial-gradient(circle,rgba(255,232,170,.95),rgba(255,214,130,0) 70%)}
+/* Été : soleil doux et rayons très discrets */
+.season-summer .sun{position:absolute;top:-18vmax;right:-14vmax;width:44vmax;height:44vmax;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,200,100,.28),rgba(255,200,100,0) 65%);
+  animation:ssBreathe 10s ease-in-out infinite alternate}
+.season-summer.lvl-subtle .sun{animation:none}
+[data-theme="dark"] .season-summer .sun{background:radial-gradient(circle,rgba(255,200,100,.16),rgba(255,200,100,0) 65%)}
+.season-summer .rays{display:none;position:absolute;top:-30vmax;right:-30vmax;width:80vmax;height:80vmax;
+  background:repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,215,140,.07) 0 6deg,transparent 6deg 18deg);
+  -webkit-mask-image:radial-gradient(circle,#000 0,transparent 60%);mask-image:radial-gradient(circle,#000 0,transparent 60%);
+  animation:ssSpin 160s linear infinite}
+.season-summer.lvl-rich .rays{display:block}
+[data-theme="dark"] .season-summer .rays{opacity:.5}
+@keyframes ssBreathe{from{opacity:.75;transform:scale(1)}to{opacity:1;transform:scale(1.06)}}
+@keyframes ssSpin{to{transform:rotate(360deg)}}
+/* Sélecteur de niveau */
+.v28-seg{display:inline-flex;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface)}
+.v28-seg button{padding:8px 16px;border:0;background:transparent;color:var(--text);cursor:pointer;font:inherit;font-weight:600}
+.v28-seg button+button{border-left:1px solid var(--border)}
+.v28-seg button[aria-pressed="true"]{background:var(--primary);color:#fff}
+.v28-seg button:disabled{opacity:.45;cursor:not-allowed}
 
 /* Menu latéral PC : le bouton Réglages reste toujours accessible, même sur une fenêtre peu haute */
 .sidebar .nav{min-height:0;overflow-y:auto;scrollbar-width:thin}
@@ -7941,6 +7949,11 @@ button.holiday-chip:hover{background:rgba(237,156,40,.26)}
     $("v28SeasonMode").value=prefs.seasonMode;
     $("v28Season").value=prefs.season;
     $("v28Season").disabled=prefs.seasonMode!=="manual";
+    document.querySelectorAll("#v28Levels [data-level]").forEach(button=>{
+      button.setAttribute("aria-pressed",String(button.dataset.level===prefs.intensity));
+      button.disabled=!prefs.seasonal;
+    });
+    $("v28LevelHint").textContent=LEVEL_HINTS[prefs.intensity]+" Sur téléphone, le nombre d’éléments est réduit pour économiser la batterie.";
     const dark=document.documentElement.dataset.theme==="dark";
     $("v28Palettes").innerHTML=UIPrefs.PALETTES.map(key=>{
       const info=PALETTE_INFO[key];
@@ -7999,8 +8012,22 @@ button.holiday-chip:hover{background:rgba(237,156,40,.26)}
   });
 
   /* ---------- Effets saisonniers ---------- */
+  const SEASON_CONFIG={
+    winter:{dur:[16,30],size:[3,10]},
+    autumn:{dur:[22,38],size:[10,18],colors:["#d9822b","#b5651d","#c9a227","#a4472a"]},
+    spring:{dur:[22,36],size:[8,14],colors:["#f2b8c6","#a8d5a2","#fbe3e8","#7bb77f"]},
+    summer:{dur:[24,42],size:[5,13]}
+  };
+  const COUNTS={subtle:[5,9],balanced:[9,16],rich:[14,28]}; /* [téléphone, ordinateur] */
+  const LEVEL_HINTS={
+    subtle:"Quelques éléments seulement, sans ambiance lumineuse.",
+    balanced:"Plus d’éléments, un léger balancement et une ambiance lumineuse propre à la saison.",
+    rich:"Le plus riche : davantage d’éléments, de la profondeur et des effets de lumière. Reste discret."
+  };
+  const rand=(min,max)=>min+Math.random()*(max-min);
   const Seasons={
     layer:null,
+    small:false,
     current(){
       const prefs=UIPrefs.get();
       if(prefs.seasonMode==="manual")return prefs.season;
@@ -8016,28 +8043,55 @@ button.holiday-chip:hover{background:rgba(237,156,40,.26)}
       const prefs=UIPrefs.get();
       if(!prefs.seasonal||Appearance.reducedMotion())return;
       const season=this.current();
+      const level=prefs.intensity;
+      const cfg=SEASON_CONFIG[season];
+      this.small=Boolean(window.matchMedia&&window.matchMedia("(max-width:700px)").matches);
       const layer=document.createElement("div");
-      layer.className="season-layer season-"+season;
+      layer.className=`season-layer season-${season} lvl-${level}`;
       layer.setAttribute("aria-hidden","true");
-      if(season!=="summer"){
-        const small=window.matchMedia&&window.matchMedia("(max-width:700px)").matches;
-        const count=small?6:11;
-        const colors={autumn:["#d9822b","#b5651d","#c9a227"],spring:["#7bb77f","#a8d5a2","#f2b8c6"]}[season];
-        for(let i=0;i<count;i++){
-          const p=document.createElement("span");
-          p.className="sp";
-          const size=season==="winter"?4+Math.random()*5:8+Math.random()*6;
-          p.style.cssText=`left:${(Math.random()*96).toFixed(1)}%;width:${size.toFixed(1)}px;height:${size.toFixed(1)}px;`+
-            `animation-duration:${(season==="winter"?16:24)+Math.random()*16}s;animation-delay:-${(Math.random()*30).toFixed(1)}s;`+
-            `--dx:${(Math.random()*80-40).toFixed(0)}px;--rot:${(Math.random()*500-250).toFixed(0)}deg;`+
-            (colors?`--c:${colors[i%colors.length]};`:"");
-          layer.appendChild(p);
-        }
+      if(season==="summer"){
+        layer.insertAdjacentHTML("beforeend",'<div class="sun"></div><div class="rays"></div>');
+      }
+      const count=COUNTS[level][this.small?0:1];
+      for(let i=0;i<count;i++){
+        const depth=Math.random(); /* 0 = loin, 1 = proche */
+        const rising=season==="summer"||(season==="spring"&&i%4===3);
+        const size=cfg.size[0]+(cfg.size[1]-cfg.size[0])*depth;
+        const wrap=document.createElement("span");
+        const shape=document.createElement("i");
+        wrap.className="sp"+(rising?" up":"");
+        wrap.style.cssText=`--x:${rand(0,96).toFixed(1)}%;--d:${(rand(cfg.dur[0],cfg.dur[1])*(1.25-depth*.5)).toFixed(1)}s;`+
+          `--delay:-${rand(0,40).toFixed(1)}s;--dx:${rand(-50,50).toFixed(0)}px;`;
+        shape.style.cssText=`--s:${size.toFixed(1)}px;--o:${((season==="winter"?0.5:0.25)+depth*(season==="winter"?0.4:0.35)).toFixed(2)};--sw:${rand(4,8).toFixed(1)}s;`+
+          `--r0:${Math.round(rand(-60,0))}deg;--r1:${Math.round(rand(0,120))}deg;`+
+          (cfg.colors?`--c:${cfg.colors[i%cfg.colors.length]};`:"");
+        if(season==="autumn"&&i%2)shape.className="alt";
+        if(season==="spring"&&rising)shape.className="pollen";
+        wrap.appendChild(shape);
+        layer.appendChild(wrap);
       }
       document.body.appendChild(layer);
       this.layer=layer;
     }
   };
+  /* pause quand l'onglet est caché, recalcul si on passe de téléphone à ordinateur */
+  document.addEventListener("visibilitychange",()=>{
+    if(Seasons.layer)Seasons.layer.classList.toggle("paused",document.hidden);
+  });
+  let resizeTimer=null;
+  window.addEventListener("resize",()=>{
+    clearTimeout(resizeTimer);
+    resizeTimer=setTimeout(()=>{
+      const small=Boolean(window.matchMedia&&window.matchMedia("(max-width:700px)").matches);
+      if(Seasons.layer&&small!==Seasons.small)Seasons.refresh();
+    },250);
+  });
+  $("v28Levels").addEventListener("click",event=>{
+    const button=event.target.closest("[data-level]");
+    if(!button||button.disabled)return;
+    UIPrefs.set({intensity:button.dataset.level});
+    refreshAfterAppearanceChange();
+  });
   $("v28Seasonal").addEventListener("change",event=>{UIPrefs.set({seasonal:event.target.checked});refreshAfterAppearanceChange();});
   $("v28SeasonMode").addEventListener("change",event=>{UIPrefs.set({seasonMode:event.target.value});refreshAfterAppearanceChange();});
   $("v28Season").addEventListener("change",event=>{UIPrefs.set({season:event.target.value});refreshAfterAppearanceChange();});
@@ -8146,7 +8200,7 @@ button.holiday-chip:hover{background:rgba(237,156,40,.26)}
     const prefs=UIPrefs.get();
     add(E,"Préférences visuelles","ok",
       `thème ${currentThemeChoice()}, palette ${prefs.palette}, animations ${Appearance.reducedMotion()?"réduites":"normales"}, `+
-      `jours fériés ${prefs.holidays?"affichés":"masqués"}, effets saisonniers ${prefs.seasonal?"actifs ("+Seasons.current()+")":"désactivés"}`);
+      `jours fériés ${prefs.holidays?"affichés":"masqués"}, effets saisonniers ${prefs.seasonal?"actifs ("+Seasons.current()+", niveau "+prefs.intensity+")":"désactivés"}`);
     return results;
   }
 
