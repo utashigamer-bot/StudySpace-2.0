@@ -2666,6 +2666,7 @@ body.splash-active{background:#0c0b14}
     </div>
   </div>
 
+  <button type="button" class="button button-secondary settings-back" id="settingsBack">‹ Réglages</button>
   <div class="settings-nav" id="settingsTabs">
     <span class="v28-tabgroup">Général</span>
     <button class="button button-primary" data-settings-tab="profile">👤 Profil</button>
@@ -7920,6 +7921,33 @@ button.holiday-chip:hover{background:rgba(237,156,40,.26)}
 .v28-modal-date{margin:0 0 12px;color:var(--muted);font-size:13px}
 .v28-modal-card p{margin:0 0 10px;line-height:1.5}
 .v28-modal-kind{font-size:12px;color:var(--muted)}
+
+/* Barre de défilement de la page masquée (le défilement reste possible) */
+html{scrollbar-width:none}
+html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
+
+/* Réglages sur téléphone : liste groupée puis page de détail avec bouton retour */
+.settings-back{display:none}
+@media(max-width:899px){
+  #page-settings>.settings-nav{flex-direction:column;gap:0;overflow:visible;padding:0;margin:0 0 16px;
+    background:none;border:0}
+  .settings-nav .v28-tabgroup{display:block;margin:20px 8px 8px;font-size:12px;font-weight:700;
+    letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .settings-nav .v28-tabgroup:first-child{margin-top:4px}
+  #page-settings>.settings-nav [data-settings-tab]{display:flex;align-items:center;justify-content:flex-start;
+    width:100%;min-height:54px;padding:0 18px;border:0;border-bottom:1px solid var(--border);border-radius:0;
+    background:var(--surface);color:var(--text);box-shadow:none;transform:none;font-size:16px;font-weight:600;
+    text-align:left;white-space:normal}
+  #page-settings>.settings-nav [data-settings-tab]::after{content:"›";margin-left:auto;font-size:24px;
+    font-weight:400;color:var(--muted)}
+  #page-settings>.settings-nav [data-settings-tab]:active{background:var(--surface2)}
+  #page-settings>.settings-nav .v28-tabgroup+[data-settings-tab]{border-radius:14px 14px 0 0}
+  #page-settings>.settings-nav [data-settings-tab]:last-child{border-radius:0 0 14px 14px;border-bottom:0}
+  #page-settings>.settings-nav [data-settings-tab]:has(+.v28-tabgroup){border-radius:0 0 14px 14px;border-bottom:0}
+  #page-settings:not(.settings-detail)>.settings-tab-panel{display:none!important}
+  #page-settings.settings-detail>.settings-nav,#page-settings.settings-detail>.page-header{display:none}
+  #page-settings.settings-detail>.settings-back{display:inline-flex;align-self:flex-start;margin:0 0 14px}
+}
 </style>
 <script>
 "use strict";
@@ -8301,6 +8329,26 @@ button.holiday-chip:hover{background:rgba(237,156,40,.26)}
   document.addEventListener("click",event=>{
     const chip=event.target.closest("[data-holiday]");
     if(chip&&chip.dataset.holiday)openHolidayDialog(chip.dataset.holiday);
+  });
+
+  /* ---------- Réglages sur téléphone : liste → détail ---------- */
+  const settingsPage=$("page-settings");
+  const baseNavigate=navigate;
+  navigate=function(page){
+    settingsPage.classList.remove("settings-detail"); /* on revient toujours à la liste */
+    baseNavigate(page);
+  };
+  const baseSetSettingsTab=setSettingsTab;
+  setSettingsTab=function(tab){
+    baseSetSettingsTab(tab);
+    if(currentPage==="settings"&&!settingsPage.classList.contains("settings-detail")){
+      settingsPage.classList.add("settings-detail");
+      window.scrollTo({top:0});
+    }
+  };
+  $("settingsBack").addEventListener("click",()=>{
+    settingsPage.classList.remove("settings-detail");
+    window.scrollTo({top:0});
   });
 
   /* ---------- Démarrage ---------- */
